@@ -9,10 +9,8 @@
 # pdfplumber는 개행 문자를 식별하는 부분에서 pdfminer보다 부정확할 때가 생긴다.
 # 결론적으로 pdfplumber와 pdfminer로 각각 추출 후 교차 검증을 하는 방식으로 처리하기로 했다.
 
-# .six는 파이썬 2와 3사이의 호환성을 제공한다. 필요한 경우 추가한다.
 
-
-from pdfminer.high_level import extract_text
+from pdfminer.high_level import extract_text #pip install pdfminer.six
 
 def pdf_to_text(pdf_path, output_file_path):
     # PDF 파일에서 텍스트 추출
@@ -35,7 +33,7 @@ pdf_to_text(pdf_path, output_file_path)
 
 #--------------------------------------------------------------------
 
-import pdfplumber
+import pdfplumber #pip install pdfplumber
 
 def pdf_to_text(pdf_file_path, output_file_path):
 
@@ -58,7 +56,7 @@ pdf_to_text(pdf_path, output_file_path)
 
 #--------------------------------------------------------------------
 
-# import fitz # PyMuPDF
+# import fitz # pip install PyMuPDF
 
 # def pdf_to_text(pdf_path, output_file_path):
 #     doc = fitz.open(pdf_path)
@@ -83,7 +81,7 @@ pdf_to_text(pdf_path, output_file_path)
 
 #--------------------------------------------------------------------
 
-# import PyPDF2
+# import PyPDF2 #pip install PyPDF2
 
 # def pdf_to_text(pdf_path, output_file_path):
 
