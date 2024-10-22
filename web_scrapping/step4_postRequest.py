@@ -1,7 +1,6 @@
-import requests
-from bs4 import BeautifulSoup
-import pandas as pd
-import json
+import requests #pip install requests 
+from bs4 import BeautifulSoup #pip install beautifulsoup4 
+import pandas as pd #pip install pandas, pip install openpyxl
 
 #주요 기능
 #1. function fn_egov_info_search(pageNo) {
