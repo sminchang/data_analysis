@@ -1,10 +1,11 @@
-# hwp 추출 후 pdf로 변환하는 파이썬 라이브러리들이 있는데, 이는 2차 가공을 거치기 떄문에 신뢰하기 어려움
-# win32com은 윈도우가 한글을 직접 제어하여 pdf 변환 기능을 자동 수행하도록 할 수 있음
-# saveAs()함수로 더 간단하게 변환할 수 있는데, 변환 기본 옵션이 모아찍기(2쪽씩)로 되어있는 문제를 해결못함
+# 한글 설치가 안된 상태에서는 사용할 수 없는 hwpAsPdf 방식임
+# hwp 추출 후 pdf로 변환하는 파이썬 라이브러리들은 2차 가공을 거치기 때문에 신뢰하기 어려움
+# win32com은 윈도우가 한글을 직접 제어하여 pdf 변환 기능을 자동 수행함
+# win32com에서 제공하는 saveAs()함수로 간단하게 변환할 수 있는데, 모아찍기(2쪽씩) 옵션 해제가 안되는 문제가 있음
 # PrintToPDF 액션은 pdf 변환 옵션을 제어할 수 있어, 모아찍기 해제 후 변환할 수 있음 
 
 import os
-import win32com.client
+import win32com.client #pip install pywin32
 
 def convert_hwp_to_pdf(hwp_path, pdf_path):
     # PDF 저장 경로가 없으면 생성
