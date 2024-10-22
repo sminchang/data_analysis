@@ -1,6 +1,6 @@
-import requests
+import requests #pip install requests 
 import certifi
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup #pip install beautifulsoup4
 
 
 #주요 기능
