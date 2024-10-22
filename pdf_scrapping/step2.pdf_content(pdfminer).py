@@ -2,8 +2,8 @@
 # 항목별로 텍스트를 추출하는 스크립트
 
 import re
-from pdfminer.high_level import extract_text
-import pandas as pd
+from pdfminer.high_level import extract_text  #pip install pdfminer.six
+import pandas as pd #pip install pandas, pip install openpyxl
 
 def clean_text(text):
     # 연속된 개행 문자를 하나의 개행 문자로 대체, 한 문장이 길어져 자동개행된 경우를 원래대로 처리
