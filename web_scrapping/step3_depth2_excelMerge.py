@@ -1,8 +1,8 @@
-import pandas as pd
-from selenium import webdriver
+import pandas as pd  #pip install pandas, #pip install openpyxl 
+from selenium import webdriver #pip install selenium, pip install webdriver-manager
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup #pip install beautifulsoup4
 import time
 import re
 
