@@ -1,5 +1,10 @@
-import pandas as pd
-import requests
+# 1.엑셀 파일을 읽어온다.
+# 2.저장할 파일명 열과 다운로드 링크 열을 선택하고 다운로드를 진행한다.
+# 3.url 링크를 타고 다운로드하는 방식이므로, http 헤더를 추출하여 확장자를 찾는다.
+# 4.다운로드 실패한 파일들의 이름을 로그 파일에 남긴다.
+
+import pandas as pd #pip install pandas, pip openpyxl
+import requests #pip install requests
 from urllib.parse import quote
 import ssl
 import os
@@ -88,6 +93,6 @@ def download_file(df, download_folder):
     print("다운로드 작업이 완료되었습니다.")
 
 
-folder_name = create_download_folder('downloads')  # 업로드 경로 설정
-df = pd.read_excel('testA.xlsx', engine='openpyxl')  # 읽어올 Excel 경로
+folder_name = create_download_folder(r'c:\Users\User\OneDrive - 씨지인사이드\pc1_downloads')  # 업로드 경로 설정
+df = pd.read_excel('국가재정_2021_2023.xlsx', engine='openpyxl')  # 읽어올 Excel 경로
 download_file(df, folder_name)  # 파일 다운로드
