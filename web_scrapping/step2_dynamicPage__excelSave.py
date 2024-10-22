@@ -1,11 +1,13 @@
-import requests
+import requests #pip install requests
 import certifi
-from selenium import webdriver
+from selenium import webdriver #pip install selenium, pip install webdriver-manager
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 import time
-from bs4 import BeautifulSoup
-import pandas as pd
+from bs4 import BeautifulSoup #pip install beautifulsoup4
+import pandas as pd #pip install pandas, pip install openpyxl
+
+ 
 
 #주요 기능
 #1.웹 드라이버를 활용한 동적 페이지 스크래핑
