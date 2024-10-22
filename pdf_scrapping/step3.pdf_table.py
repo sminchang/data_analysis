@@ -1,7 +1,7 @@
 # 다양한 표 형식으로 테스트해보지는 않았지만 표 추출에 있어 pdfminer보다 pdfplumber가 간단하고 성능이 좋았다.
 
-import pdfplumber
-import pandas as pd
+import pdfplumber #pip install pdfplumber
+import pandas as pd #pip install pandas, pip install openpyxl
 import re
 
 def extract_table_data(pdf_path, output_file):
