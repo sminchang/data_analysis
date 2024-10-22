@@ -1,5 +1,5 @@
 from urllib import request
-import pandas as pd
+import pandas as pd #pip install pandas, pip install openpyxl
 import ssl
 
 # SSL 인증서 검증 비활성화
