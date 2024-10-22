@@ -1,9 +1,9 @@
 # pdfplumber, 탭 문자를 하나의 공백 문자로 처리한다.
 # 항목별로 텍스트를 추출하는 스크립트
 
-import pdfplumber
+import pdfplumber #pip install pdfplumber
 import re
-import pandas as pd
+import pandas as pd #pip install pandas, pip install openpyxl
 
 def extract_text_to_file(pdf_path, output_file):
     data = []
