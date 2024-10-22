@@ -3,7 +3,7 @@
 # 3.url 링크를 타고 다운로드하는 방식이므로, http 헤더를 추출하여 확장자를 찾는다.
 # 4.다운로드 실패한 파일들의 이름을 로그 파일에 남긴다.
 
-import pandas as pd #pip install pandas, pip openpyxl
+import pandas as pd #pip install pandas, pip install openpyxl
 import requests #pip install requests
 from urllib.parse import quote
 import ssl
