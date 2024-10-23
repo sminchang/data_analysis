@@ -17,7 +17,7 @@ def convert_hwp_to_pdf(hwp_path, pdf_path):
 
     try:
         # HWP 파일 목록 가져오기
-        file_list = [f for f in os.listdir(hwp_path) if f.lower().endswith('.hwp')]
+        file_list = [f for f in os.listdir(hwp_path) if f.lower().endswith(('.hwp','.hwpx'))]
         
         for file in file_list:
             pre, ext = os.path.splitext(file)
