@@ -42,7 +42,6 @@ def convert_hwp_to_pdf(hwp_path, pdf_path):
                 
                 # PDF로 변환 실행
                 action.Execute(pSet)
-                print(f'변환 완료: {src} -> {dst}')
                 
             except Exception as e:
                 print(f'변환 실패: {src}. 오류: {str(e)}')
