@@ -31,9 +31,7 @@ def convert_hwp_to_pdf(hwp_path, pdf_path):
                 # PrintToPDF 액션 생성 및 설정
                 action = hwp.CreateAction("PrintToPDF")
                 pSet = action.CreateSet()
-                
-                # 기본 프린터 설정 가져오기
-                action.GetDefault(pSet)
+                action.GetDefault(pSet) # 기본 프린터 설정 가져오기
                 
                 # PDF 변환 옵션 설정
                 pSet.SetItem("PrintMethod", 0)  # 기본 인쇄 방식
