@@ -6,9 +6,8 @@ import pandas as pd #pip install pandas, pip install openpyxl
 import os
 
 
-excel_data = []
-
 def pdf_table_extract(input_path, output_file):
+    excel_data = []
 
     # 해당 폴더 안에 있는 파일 리스트(여러 파일) 불러오기
     for file_name in os.listdir(input_path):
