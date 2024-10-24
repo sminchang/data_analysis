@@ -1,4 +1,5 @@
 # 엑셀 파일에 pdfplumber가 인식하고 변환하는 table 형식을 출력하여 pdf의 table 구조를 분석하는데 활용
+# pdf_text.py에서는 크기가 큰 1개 파일에서 텍스트 추출, 현재 pdf_table.py는 크기가 작은 여러 파일에서 테이블 추출하는 코드로 코드 구조에 차이가 있음
 
 import pdfplumber #pip install pdfplumber
 import pandas as pd #pip install pandas, pip install openpyxl
@@ -9,7 +10,7 @@ excel_data = []
 
 def pdf_table_extension(input_path, output_file):
 
-    # 해당 폴더 안에 있는 파일 리스트 불러오기
+    # 해당 폴더 안에 있는 파일 리스트(여러 파일) 불러오기
     for file_name in os.listdir(input_path):
         file_path = os.path.join(input_path, file_name)
 
