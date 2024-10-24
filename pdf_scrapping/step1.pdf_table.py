@@ -8,7 +8,7 @@ import os
 
 excel_data = []
 
-def pdf_table_extension(input_path, output_file):
+def pdf_table_extract(input_path, output_file):
 
     # 해당 폴더 안에 있는 파일 리스트(여러 파일) 불러오기
     for file_name in os.listdir(input_path):
@@ -43,4 +43,4 @@ def pdf_table_extension(input_path, output_file):
 # 폴더 경로 지정하기
 input_path= r'C:\python\pdf_python\test'
 output_file = 'table_2024.xlsx'
-pdf_table_extension(input_path, output_file)
+pdf_table_extract(input_path, output_file)
