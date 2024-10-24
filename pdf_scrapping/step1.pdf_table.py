@@ -20,9 +20,8 @@ def pdf_table_extract(input_path, output_file):
             try:
                 # PDF 파일 열기
                 with pdfplumber.open(file_path) as pdf:
-                    pages = pdf.pages
                     # 페이지 단위 순회
-                    for page in pages:
+                    for page in pdf.pages:
                         tables = page.extract_tables() 
                         # 테이블 단위 순회
                         for table in tables:
