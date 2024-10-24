@@ -1,5 +1,7 @@
-import pdfplumber
-import pandas as pd
+# 엑셀 파일에 pdfplumber가 인식하고 변환하는 table 형식을 출력하여 pdf의 table 구조를 분석하는데 활용
+
+import pdfplumber #pip install pdfplumber
+import pandas as pd #pip install pandas, pip install openpyxl
 import os
 
 
