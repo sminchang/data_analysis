@@ -150,14 +150,12 @@ def pdf_table_extract(input_path, output_file):
                                         document_set['N_last_2'] = table[2][3]
                                         document_set['N_main_1'] = table[2][4]
                                         document_set['N_main_2'] = table[2][5]
-                                        excel_data.append([file_name] + list(document_set.values()))
                                     
                                     # N-1년 예산에서 추경이 생략된 경우
                                     elif table[0][3] is not None and table[0][4] is None and table[0][5] is not None:
                                         document_set['N_last_2'] = ""
                                         document_set['N_main_1'] = table[2][3]
                                         document_set['N_main_2'] = table[2][4]
-                                        excel_data.append([file_name] + list(document_set.values()))
                                     
                                     # N-1년 예산과 N년 예산에서 추경이 생략된 경우
                                     elif table[0][3] is not None and table[0][4] is not None:
@@ -168,7 +166,8 @@ def pdf_table_extract(input_path, output_file):
                                     # 그 외 다양한 형식
                                     else:
                                         document_set['N_2'] = "error/예산표 확인 요구"
-                                        excel_data.append([file_name] + list(document_set.values()))
+                
+                                    excel_data.append([file_name] + list(document_set.values()))
 
                     # 마지막 문건에 D 테이블이 없는 경우 추가 처리
                     if document_set['business_name'] and document_set['N_2'] == "":
@@ -190,6 +189,6 @@ def pdf_table_extract(input_path, output_file):
 
 
 # 실행
-input_path = r'C:\Users\User\Desktop\중앙정부)국가재정\2024_pdf'
+input_path = r'C:\Users\CS4_18\python\repos_python\새 폴더'
 output_file = 'pdf_table_2024.xlsx'
 pdf_table_extract(input_path, output_file)
