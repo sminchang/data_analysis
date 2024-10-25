@@ -1,8 +1,8 @@
 # 데이터 출처: https://www.openfiscaldata.go.kr/op/ko/bs/UOPKOBSA02
 # 조건없이 테이블 추출하여 구조 파악 후 필요한 추출 조건 추가
 
-import pdfplumber
-import pandas as pd
+import pdfplumber #pip install pdfplumber
+import pandas as pd #pip install pandas, pip install openpyxl
 import re
 import os
 
