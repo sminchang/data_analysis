@@ -1,4 +1,6 @@
-# https://www.openfiscaldata.go.kr/
+# 데이터 출처: https://www.openfiscaldata.go.kr/op/ko/bs/UOPKOBSA02
+# 조건없이 테이블 추출하여 구조 파악 후 필요한 추출 조건 추가
+
 import pdfplumber
 import pandas as pd
 import re
@@ -56,7 +58,7 @@ def pdf_table_extract(input_path, output_file):
                             for table in tables:
                                 # A 테이블 패턴 발견
                                 if len(table) == 2 and len(table[0]) == 1 and re.match(r'사\s*업\s*명', table[0][0]):
-                                    # 이전 세트가 있다면 D테이블 없음 처리 후 저장
+                                    # 같은 파일내 다른 문건이 있다면 D테이블 없음 처리 후 저장
                                     if document_set['business_name']:
                                         document_set['N_2'] = "예산표 없음"
                                         excel_data.append([file_name] + list(document_set.values()))
@@ -66,70 +68,84 @@ def pdf_table_extract(input_path, output_file):
                                     document_set['business_name'] = table[1][0]
                                 
                                 # B 테이블 패턴 발견
-                                elif table[0][2] == "소관":
-                                    # 회계 처리
-                                    accounting = table[1][1]
-                                    try:
-                                        accounting_match = re.search(r"(\d+)\s*(.+)", accounting)
-                                        document_set['accounting_code'] = accounting_match.group(1)
-                                        document_set['accounting_name'] = accounting_match.group(2)
-                                    except:
-                                        document_set['accounting_code'] = ""
-                                        document_set['accounting_name'] = table[1][1]
+                                elif len(table[0]) > 2 and table[0][2] == "소관":
+                                    if len(table[0]) == 7 and len(table) == 3: # 기본 테이블 구조와 다른 경우 예외처리
+                                        # 회계 처리
+                                        accounting = table[1][1]
+                                        if table[2][1] == None:
+                                            try:
+                                                accounting_match = re.search(r"(\d+)\s*([\s\S]+)", accounting)
+                                                document_set['accounting_code'] = accounting_match.group(1)
+                                                document_set['accounting_name'] = accounting_match.group(2)
+                                            except:
+                                                document_set['accounting_code'] = ""
+                                                document_set['accounting_name'] = table[1][1]
+                                        else:
+                                                document_set['accounting_code'] = table[1][1]
+                                                document_set['accounting_name'] = table[2][1]
 
-                                    # 소관 처리
-                                    jurisdiction = table[1][2]
-                                    if "518민주화" not in jurisdiction and "1029이태원" not in jurisdiction:
-                                        try:
-                                            jurisdiction_match = re.search(r"(\d+)\s*(.+)", jurisdiction)
-                                            document_set['jurisdiction_code'] = jurisdiction_match.group(1)
-                                            document_set['jurisdiction_name'] = jurisdiction_match.group(2)
-                                        except:
-                                            document_set['jurisdiction_code'] = ""
-                                            document_set['jurisdiction_name'] = table[1][2]
-                                    else:
-                                        document_set['jurisdiction_code'] = ""
-                                        document_set['jurisdiction_name'] = table[1][2]
-
-                                    # 계정 처리
-                                    account = table[1][4]
-                                    if table[2][4] == "":
-                                        try:
-                                            account_match = re.search(r"(\d+)\s*(.+)", account)
-                                            document_set['account_code'] = account_match.group(1)
-                                            document_set['account_name'] = account_match.group(2)
-                                        except:
-                                            if re.match(r'^\d+$', account):
-                                                document_set['account_code'] = account
-                                                document_set['account_name'] = ""
+                                        # 소관 처리
+                                        jurisdiction = table[1][2]
+                                        if table[2][2] == None:
+                                            if "518민주화" not in jurisdiction and "1029이태원" not in jurisdiction:
+                                                try:
+                                                    jurisdiction_match = re.search(r"(\d+)\s*([\s\S]+)", jurisdiction)
+                                                    document_set['jurisdiction_code'] = jurisdiction_match.group(1)
+                                                    document_set['jurisdiction_name'] = jurisdiction_match.group(2)
+                                                except:
+                                                    document_set['jurisdiction_code'] = ""
+                                                    document_set['jurisdiction_name'] = table[1][2]
                                             else:
-                                                document_set['account_code'] = ""
-                                                document_set['account_name'] = account
-                                    else:
-                                        document_set['account_code'] = table[1][4]
-                                        document_set['account_name'] = table[2][4]
+                                                document_set['jurisdiction_code'] = ""
+                                                document_set['jurisdiction_name'] = table[1][2]
+                                        else:
+                                            document_set['jurisdiction_code'] = table[1][2]
+                                            document_set['jurisdiction_name'] = table[2][2]
+                                        
+                                        # 계정 처리
+                                        account = table[1][4]
+                                        if table[2][4] == None:
+                                            try:
+                                                account_match = re.search(r"(\d+)\s*([\s\S]+)", account)
+                                                document_set['account_code'] = account_match.group(1)
+                                                document_set['account_name'] = account_match.group(2)
+                                            except:
+                                                if re.match(r'^\d+$', account):
+                                                    document_set['account_code'] = account
+                                                    document_set['account_name'] = ""
+                                                else:
+                                                    document_set['account_code'] = ""
+                                                    document_set['account_name'] = account
+                                        else:
+                                            document_set['account_code'] = table[1][4]
+                                            document_set['account_name'] = table[2][4]
 
-                                    # 분야, 부문 처리
-                                    document_set['field_code'] = table[1][5]
-                                    document_set['field_name'] = table[2][5]
-                                    document_set['sector_code'] = table[1][6]
-                                    document_set['sector_name'] = table[2][6]
-                                
+                                        # 분야, 부문 처리
+                                        document_set['field_code'] = table[1][5]
+                                        document_set['field_name'] = table[2][5]
+                                        document_set['sector_code'] = table[1][6]
+                                        document_set['sector_name'] = table[2][6]
+                                    else:
+                                        document_set['accounting_code'] = "error/사업코드표 확인 요구"
+
                                 # C 테이블 패턴 발견
-                                elif table[0][1] == "프로그램":
-                                    document_set['program_code'] = table[1][1]
-                                    document_set['program_name'] = table[2][1]
-                                    document_set['unit_business_code'] = table[1][2]
-                                    document_set['unit_business_name'] = table[2][2]
-                                    document_set['detailed_business_code'] = table[1][3]
-                                    document_set['detailed_business_name'] = table[2][3]
+                                elif len(table[0]) > 1 and table[0][1] == "프로그램":
+                                    if len(table[0]) == 4 and len(table) == 3: # 기본 테이블 구조와 다른 경우 예외처리
+                                        document_set['program_code'] = table[1][1]
+                                        document_set['program_name'] = table[2][1]
+                                        document_set['unit_business_code'] = table[1][2]
+                                        document_set['unit_business_name'] = table[2][2]
+                                        document_set['detailed_business_code'] = table[1][3]
+                                        document_set['detailed_business_name'] = table[2][3]
+                                    else:
+                                        document_set['program_code'] = "error/프로그램표 테이블 확인 요구"
 
                                 # D 테이블 패턴 발견
-                                elif re.match(r'^\d{4}년\s*결산', table[0][1]):
+                                elif (len(table[0]) > 1 and isinstance(table[0][1], str) and re.match(r'^\d{4}년\s*결산', table[0][1])):
                                     document_set['N_2'] = table[2][1]
                                     document_set['N_last_1'] = table[2][2]
 
-                                    # 기본 형식인 경우
+                                    # 기본 테이블 구조
                                     if table[0][3] is None and table[0][5] is None and table[0][6] is not None:
                                         document_set['N_last_2'] = table[2][3]
                                         document_set['N_main_1'] = table[2][4]
@@ -143,14 +159,20 @@ def pdf_table_extract(input_path, output_file):
                                         document_set['N_main_2'] = table[2][4]
                                         excel_data.append([file_name] + list(document_set.values()))
                                     
+                                    # N-1년 예산과 N년 예산에서 추경이 생략된 경우
+                                    elif table[0][3] is not None and table[0][4] is not None:
+                                        document_set['N_last_2'] = ""
+                                        document_set['N_main_1'] = table[2][3]
+                                        document_set['N_main_2'] = ""
+
                                     # 그 외 다양한 형식
                                     else:
-                                        document_set['N_2'] = "예산표 확인 요구"
+                                        document_set['N_2'] = "error/예산표 확인 요구"
                                         excel_data.append([file_name] + list(document_set.values()))
-                    
+
                     # 마지막 문건에 D 테이블이 없는 경우 추가 처리
                     if document_set['business_name'] and document_set['N_2'] == "":
-                        document_set['N_2'] = "예산표 없음"
+                        document_set['N_2'] = "예산표가 없거나 D 테이블의 패턴이 다른 경우"
                         excel_data.append([file_name] + list(document_set.values()))
             
             except Exception as e:
@@ -168,6 +190,6 @@ def pdf_table_extract(input_path, output_file):
 
 
 # 실행
-input_path = r'C:\python\pdf_python\예시'
-output_file = 'example_2024.xlsx'
+input_path = r'C:\Users\User\Desktop\중앙정부)국가재정\2024_pdf'
+output_file = 'pdf_table_2024.xlsx'
 pdf_table_extract(input_path, output_file)
