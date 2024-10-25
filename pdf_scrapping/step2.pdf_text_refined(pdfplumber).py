@@ -1,3 +1,4 @@
+# refined data source: https://www.gg.go.kr/bbs/board.do?bsIdx=619&menuId=1765
 # pdfplumber, 탭 문자를 하나의 공백 문자로 처리한다.
 # 항목별로 텍스트를 추출하는 스크립트
 
