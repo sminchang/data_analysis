@@ -1,3 +1,4 @@
+# refined data source: https://www.gg.go.kr/bbs/board.do?bsIdx=619&menuId=1765
 # pdfminer는 개행처리가 명확하다.
 # 항목별로 텍스트를 추출하는 스크립트
 
