@@ -141,7 +141,7 @@ def pdf_table_extract(input_path, output_file):
                                         document_set['program_code'] = "error/프로그램표 테이블 확인 요구"
 
                                 # D 테이블 패턴 발견
-                                elif (len(table[0]) > 1 and isinstance(table[0][1], str) and re.match(r'^\d{4}년\s*결산', table[0][1])):
+                                elif (len(table[0]) > 1 and isinstance(table[0][1], str) and re.match(r'^\d{4}년\s*결\s*산', table[0][1])):
                                     document_set['N_2'] = table[2][1]
                                     document_set['N_last_1'] = table[2][2]
 
