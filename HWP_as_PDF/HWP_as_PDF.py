@@ -5,6 +5,10 @@
 # PrintToPDF 액션은 pdf 변환 옵션을 제어할 수 있어, 모아찍기 해제 후 변환할 수 있어 사용
 # 테스트를 통해 누락되는 문서가 없는지 확인해가며 time.sleep()을 PC 성능에 맞게 조절해서 사용해야함
 
+# HWP 파일이 매우 큰 경우, 로딩이나 메모리 관련 최적화가 필요할 수 있는데, 
+# GUI로 직접 변환할 경우 이를 사용자 환경에 맞게 동적으로 최적화하지만, 
+# API 호출은 이 과정을 단축해 기본 설정만 사용해서 오류가 날 수 있음
+
 import os
 import time
 import win32com.client #pip install pywin32
