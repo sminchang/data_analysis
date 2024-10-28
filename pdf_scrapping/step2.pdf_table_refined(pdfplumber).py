@@ -49,13 +49,13 @@ def pdf_table_extract(input_path, output_file):
             try:
                 # pdf 파일 열기
                 with pdfplumber.open(file_path) as pdf:
-                    # 파일 내 모든 페이지 순회
 
                     # 파일 내 여러 문건이 있는 경우를 대비한 락킹
                     A_table_count = 0
                     B_table_count = 0
                     C_table_count = 0
-                    
+
+                    # 파일 내 모든 페이지 순회
                     for page in pdf.pages:
                         tables = page.extract_tables()
                         if len(tables) > 0:
