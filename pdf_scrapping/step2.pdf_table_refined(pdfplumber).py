@@ -141,8 +141,8 @@ def pdf_table_extract(input_path, output_file):
                                     document_set['N_2'] = table[2][1]
                                     document_set['N_last_1'] = table[2][2]
 
-                                    # 기본 테이블 구조(N-1년에 2개 항목, N년에 2개 항목)
-                                    if table[0][3] is None and table[0][5] is None and table[0][6] is not None:
+                                    # 기본 테이블 구조(3x8, N-1년에 2개 항목, N년에 2개 항목)
+                                    if len(table) <= 3 and table[0][3] is None and table[0][5] is None and table[0][6] is not None:
                                         document_set['N_last_2'] = table[2][3]
                                         document_set['N_main_1'] = table[2][4]
                                         document_set['N_main_2'] = table[2][5]
@@ -155,6 +155,7 @@ def pdf_table_extract(input_path, output_file):
                                     
                                     else:
                                         # 그 외 다양한 형식
+                                        # (len(table) > 3)인 경우
                                         # N-1년에 1개 항목, N년에 1개 항목
                                         # N-1년에 1개 항목, N년에 3개 항목
                                         # N-1년에 2개 항목, N년에 1개 항목
