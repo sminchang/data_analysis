@@ -148,7 +148,7 @@ def pdf_table_extract(input_path, output_file):
                                         document_set['N_main_2'] = table[2][5]
 
                                     # 예시) N-1년에 1개 항목, N년에 2개 항목
-                                    # elif table[0][3] is not None and table[0][4] is None and table[0][5] is not None:
+                                    # elif len(table) <= 3 and table[0][3] is not None and table[0][4] is None and table[0][5] is not None:
                                     #     document_set['N_last_2'] = ""
                                     #     document_set['N_main_1'] = table[2][3]
                                     #     document_set['N_main_2'] = table[2][4]
