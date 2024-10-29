@@ -13,32 +13,32 @@ def pdf_table_extract(input_path, output_file):
     #폴더 내 모든 파일 순회
     for file_name in os.listdir(input_path):
         
-        # 최초 초기화는 None으로 초기화, 이후 다중 문건 처리 시 ""으로 초기화
+        # 최초 초기화는 -으로, 이후 다중 문건 처리 시 ""으로 초기화하여 구분
         document_set = {
             # A 테이블
-            'accounting_code': None,          # 회계코드
-            'accounting_name': None,          # 회계명
-            'jurisdiction_code': None,        # 소관코드
-            'jurisdiction_name': None,        # 소관명
-            'account_code': None,             # 계정코드
-            'account_name': None,             # 계정명
-            'field_code': None,               # 분야코드
-            'field_name': None,               # 분야명
-            'sector_code': None,              # 부문코드
-            'sector_name': None,              # 부문명
+            'accounting_code': "-",          # 회계코드
+            'accounting_name': "-",          # 회계명
+            'jurisdiction_code': "-",        # 소관코드
+            'jurisdiction_name': "-",        # 소관명
+            'account_code': "-",             # 계정코드
+            'account_name': "-",             # 계정명
+            'field_code': "-",               # 분야코드
+            'field_name': "-",               # 분야명
+            'sector_code': "-",              # 부문코드
+            'sector_name': "-",              # 부문명
             # B 테이블
-            'program_code': None,             # 프로그램코드
-            'program_name': None,             # 프로그램명
-            'unit_business_code': None,       # 단위사업코드
-            'unit_business_name': None,       # 단위사업명
-            'detailed_business_code': None,   # 세부사업코드
-            'detailed_business_name': None,   # 세부사업명
+            'program_code': "-",             # 프로그램코드
+            'program_name': "-",             # 프로그램명
+            'unit_business_code': "-",       # 단위사업코드
+            'unit_business_name': "-",       # 단위사업명
+            'detailed_business_code': "-",   # 세부사업코드
+            'detailed_business_name': "-",   # 세부사업명
             # C 테이블
-            'N_2': None,                      # N-2년전 결산
-            'N_last_1': None,                 # N-1년전 본예산
-            'N_last_2': None,                 # N-1년전 추경
-            'N_main_1': None,                 # N년 본예산
-            'N_main_2': None                  # N년 추경
+            'N_2': "-",                      # N-2년전 결산
+            'N_last_1': "-",                 # N-1년전 본예산
+            'N_last_2': "-",                 # N-1년전 추경
+            'N_main_1': "-",                 # N년 본예산
+            'N_main_2': "-"                  # N년 추경
                                             # 증감률, A/B에 적용하는 A와 B가 문건마다 달라 통일된 기준으로 직접 추산 예정
         }
 
