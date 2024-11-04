@@ -183,6 +183,6 @@ def pdf_table_extract(input_path, output_file):
 
 
 # 실행
-input_path = r'C:\Users\User\Desktop\중앙정부)국가재정\2024_pdf'
-output_file = 'pdf_table_2024_v2.xlsx'
+input_path = r'C:\Users\User\Desktop\2024_pdf'
+output_file = 'pdf_table_2024.xlsx'
 pdf_table_extract(input_path, output_file)
