@@ -1,0 +1,28 @@
+rem 기본적으로 콘솔에 실행 명령어가 출력되지 않도록 설정
+@echo off
+
+rem 변수 옵션 설정(지역 변수화, 지연된 확장)
+setlocal enabledelayedexpansion
+
+
+set count=33
+
+mkdir processed
+
+for %%f in (*.pdf) do (
+    set "formatted_count=00000!count!" rem 카운트를 5자리 형식으로 포맷
+    set "formatted_count=!formatted_count:~-5!"  rem 마지막 5자리만 사용
+    
+    rem 파일명 변경
+    ren "%%f" "2022_02_!formatted_count!.pdf"
+    
+    rem 콘솔에 변경된 파일명 출력
+    echo Renaming %%f to 2022_02_!formatted_count!.pdf
+
+    move "2022_02_!formatted_count!.pdf" "processed\"
+    
+    set /a count+=1
+)
+
+rem 스크립트 종료 후 일시 정지(실행 결과 확인)
+pause
