@@ -12,9 +12,9 @@
 
 from pdfminer.high_level import extract_text #pip install pdfminer.six
 
-def pdf_to_text(pdf_path, output_file_path):
+def pdf_to_text(pdf_file_path, output_file_path):
     # PDF 파일에서 텍스트 추출
-    text = extract_text(pdf_path)
+    text = extract_text(pdf_file_path)
     
     # 추출한 텍스트를 텍스트 파일로 저장
     with open(output_file_path, 'w', encoding='utf-8') as file:
@@ -24,11 +24,11 @@ def pdf_to_text(pdf_path, output_file_path):
 
 
 # 추출할 PDF 경로, 저장할 파일 경로
-pdf_path = '2020_사업별 세부설명자료-A.pdf'
+pdf_file_path = '2020_사업별 세부설명자료-A.pdf'
 output_file_path = 'output_pdfminer.txt'
 
 #실행
-pdf_to_text(pdf_path, output_file_path)
+pdf_to_text(pdf_file_path, output_file_path)
 
 
 #--------------------------------------------------------------------
@@ -49,17 +49,17 @@ def pdf_to_text(pdf_file_path, output_file_path):
     print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
 
 
-pdf_path = '2020_사업별 세부설명자료-A.pdf'
+pdf_file_path = '2020_사업별 세부설명자료-A.pdf'
 output_file_path = 'output_pdfplumber.txt'
 
-pdf_to_text(pdf_path, output_file_path)
+pdf_to_text(pdf_file_path, output_file_path)
 
 #--------------------------------------------------------------------
 
 # import fitz # pip install PyMuPDF
 
-# def pdf_to_text(pdf_path, output_file_path):
-#     doc = fitz.open(pdf_path)
+# def pdf_to_text(pdf_file_path, output_file_path):
+#     doc = fitz.open(pdf_file_path)
     
 #     # 전체 텍스트를 저장할 변수
 #     full_text = ""
@@ -74,18 +74,18 @@ pdf_to_text(pdf_path, output_file_path)
 #     print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
 
 
-# pdf_path = "2023_사업별 세부설명자료-A.pdf"
+# pdf_file_path = "2023_사업별 세부설명자료-A.pdf"
 # output_file_path = "output_PyMuPDF.txt"
 
-# pdf_to_text(pdf_path, output_file_path)
+# pdf_to_text(pdf_file_path, output_file_path)
 
 #--------------------------------------------------------------------
 
 # import PyPDF2 #pip install PyPDF2
 
-# def pdf_to_text(pdf_path, output_file_path):
+# def pdf_to_text(pdf_file_path, output_file_path):
 
-#     with open(pdf_path, 'rb') as pdf_file:
+#     with open(pdf_file_path, 'rb') as pdf_file:
 #         pdf_reader = PyPDF2.PdfReader(pdf_file)
         
 #         text = ''
@@ -98,7 +98,7 @@ pdf_to_text(pdf_path, output_file_path)
 #     print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
 
 
-# pdf_path = '2023_사업별 세부설명자료-A.pdf'
+# pdf_file_path = '2023_사업별 세부설명자료-A.pdf'
 # output_file_path = 'output_PyPDF2.txt'
 
-# pdf_to_text(pdf_path, output_file_path)
+# pdf_to_text(pdf_file_path, output_file_path)
