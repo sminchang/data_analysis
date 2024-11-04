@@ -1,5 +1,4 @@
 # 엑셀 파일에 pdfplumber가 인식하고 변환하는 table 형식을 출력하여 pdf의 table 구조를 분석하는데 활용
-# pdf_text.py에서는 크기가 큰 1개 파일에서 텍스트 추출, 현재 pdf_table.py는 크기가 작은 여러 파일에서 테이블 추출하는 코드로 코드 구조에 차이가 있음
 
 import pdfplumber #pip install pdfplumber
 import pandas as pd #pip install pandas, pip install openpyxl
