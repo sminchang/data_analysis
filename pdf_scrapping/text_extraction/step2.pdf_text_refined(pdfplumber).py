@@ -9,8 +9,7 @@ import pandas as pd #pip install pandas, pip install openpyxl
 
 def extract_text_to_file(input_path, output_file):
     data = []
-    previous_row_data = None  # 직전 행 데이터를 저장하기 위한 변수
-
+    
     # 정규 표현식, 문건 추출 패턴
     document_pattern = r'세부사업:\s*([^\n]+)\s*\n([\s\S]*?)(?=\n*회계연도\s*:)'
     non_number_pattern = r'(.*?)(?=\n회계연도)' # 세부사업 번호가 없는 문건 추출 패턴
