@@ -39,10 +39,9 @@ def pdf_table_extract(input_path, output_path, division_num):
 
                                 text = page.extract_text().strip()
 
-                                # 빈 페이지인 경우, 새 챕터의 시작을 알리기 때문에 총괄,세입을 지나 다음 세출이 나올 때까지 저장하지 않는다.
-                                if len(text) == 0: # 빈 페이지라면
+                                # 빈 페이지이거나 페이지 번호만 있는 경우
+                                if len(text) == 0 or re.match(r'^-\s*\d+\s*-$', text):
                                     if output_file:
-                                        pdf_writer.delete_page(pdf_writer.page_count - 1)  # 마지막 페이지 삭제
                                         pdf_writer.save(output_file)  # 직전 페이지까지 저장
                                         pdf_writer.close()
                                     output_file = None  # output_file 초기화
