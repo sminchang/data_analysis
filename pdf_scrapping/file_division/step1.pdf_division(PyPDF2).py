@@ -1,3 +1,5 @@
+# 주어진 조건에 부합하는 경우 파일을 분할하는 스크립트
+
 import pdfplumber  # pip install pdfplumber
 from PyPDF2 import PdfReader, PdfWriter  # pip install PyPDF2
 import re
@@ -33,10 +35,11 @@ def pdf_table_extract(input_path, output_path, division_num):
                             if len(text) == 0:
                                 if output_file:
                                     # 마지막 페이지를 제외하고 저장
-                                    if pdf_writer.pages:
-                                        pdf_writer.pages.pop()
+                                    temp_writer = PdfWriter()
+                                    for i in range(len(pdf_writer.pages) - 1):
+                                            temp_writer.add_page(pdf_writer.pages[i])
                                     with open(output_file, 'wb') as output:
-                                        pdf_writer.write(output)
+                                        temp_writer.write(output)
                                     pdf_writer = PdfWriter()  # 새로운 writer 생성
                                 output_file = None
                                 continue
