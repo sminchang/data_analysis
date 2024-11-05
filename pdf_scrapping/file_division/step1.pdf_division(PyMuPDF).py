@@ -2,8 +2,9 @@
 # pypdf2는 내장 폰트 등의 문서 리소스를 파일 단위로 저장하기 때문에
 # 파일 크기 측면에서 pypdf2가 3~4배 정도 작은 파일 크기로 분할한다.
 
-# 파일 오류 및 여러 최적화 사항을 고려하면 pymupdf가 성능이 좋다고 하지만
-# 파일 크기 및 작업 속도 측면에서는 pypdf2가 유리한 것으로 보인다.
+# pymupdf는 pypdf2보다 다양한 pdf 구조를 인식해서 실행 중 오류가 거의 발생하지 않는다.
+
+# 파일 크기 및 작업 속도 측면에서는 pypdf2가, 안정성 측면에서는 pymupdf가 유리한 것으로 보인다.
 
 import pdfplumber #pip install pdfplumber
 import fitz  # pip install PyMuPDF
