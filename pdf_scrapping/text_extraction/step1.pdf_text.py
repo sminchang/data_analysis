@@ -10,95 +10,116 @@
 # 결론적으로 pdfplumber와 pdfminer로 각각 추출 후 교차 검증을 하는 방식으로 처리하기로 했다.
 
 
-from pdfminer.high_level import extract_text #pip install pdfminer.six
+import pdfplumber #pip install pdfplumber
+import os
 
-def pdf_to_text(pdf_file_path, output_file_path):
-    # PDF 파일에서 텍스트 추출
-    text = extract_text(pdf_file_path)
-    
-    # 추출한 텍스트를 텍스트 파일로 저장
-    with open(output_file_path, 'w', encoding='utf-8') as file:
-        file.write(text)
+def pdf_to_text(input_path, output_file_path):
 
-    print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
+    # 해당 폴더 안에 있는 파일 리스트(여러 파일) 불러오기
+    for file_name in os.listdir(input_path):
+        file_path = os.path.join(input_path, file_name)
+            
+        with pdfplumber.open(file_path) as pdf:
+            text = ""
+
+            for page in pdf.pages:
+                text += page.extract_text() + "\n"  # 각 페이지의 텍스트를 추가하고 줄바꿈
+
+        with open(output_file_path, 'w', encoding='utf-8') as file:
+            file.write(text)
+
+        print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
 
 
-# 추출할 PDF 경로, 저장할 파일 경로
-pdf_file_path = '2020_사업별 세부설명자료-A.pdf'
-output_file_path = 'output_pdfminer.txt'
+input_path = r'C:\python\pdf_python\test'
+output_file_path = 'output_pdfplumber.txt'
 
-#실행
-pdf_to_text(pdf_file_path, output_file_path)
-
+pdf_to_text(input_path, output_file_path)
 
 #--------------------------------------------------------------------
 
-import pdfplumber #pip install pdfplumber
+# from pdfminer.high_level import extract_text #pip install pdfminer.six
+# import os
 
-def pdf_to_text(pdf_file_path, output_file_path):
+# def pdf_to_text(input_path, output_file_path):
 
-    with pdfplumber.open(pdf_file_path) as pdf:
-        text = ""
+#         # 해당 폴더 안에 있는 파일 리스트(여러 파일) 불러오기
+#     for file_name in os.listdir(input_path):
+#         file_path = os.path.join(input_path, file_name)
 
-        for page in pdf.pages:
-            text += page.extract_text() + "\n"  # 각 페이지의 텍스트를 추가하고 줄바꿈
+#         # PDF 파일에서 텍스트 추출
+#         text = extract_text(file_path)
+        
+#         # 추출한 텍스트를 텍스트 파일로 저장
+#         with open(output_file_path, 'w', encoding='utf-8') as file:
+#             file.write(text)
 
-    with open(output_file_path, 'w', encoding='utf-8') as file:
-        file.write(text)
-
-    print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
+#         print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
 
 
-pdf_file_path = '2020_사업별 세부설명자료-A.pdf'
-output_file_path = 'output_pdfplumber.txt'
+# # 추출할 PDF 폴더 경로, 저장할 파일 경로
+# input_path = r'C:\python\pdf_python\test'
+# output_file_path = 'output_pdfminer.txt'
 
-pdf_to_text(pdf_file_path, output_file_path)
+# #실행
+# pdf_to_text(input_path, output_file_path)
 
 #--------------------------------------------------------------------
 
 # import fitz # pip install PyMuPDF
+# import os
 
-# def pdf_to_text(pdf_file_path, output_file_path):
-#     doc = fitz.open(pdf_file_path)
-    
-#     # 전체 텍스트를 저장할 변수
-#     full_text = ""
-    
-#     # 모든 페이지에서 텍스트 추출
-#     for page in doc:
-#         full_text += page.get_text()
-    
-#     with open(output_file_path, 'w', encoding='utf-8') as f:
-#         f.write(full_text)
-    
-#     print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
+# def pdf_to_text(input_path, output_file_path):
+
+#     # 해당 폴더 안에 있는 파일 리스트(여러 파일) 불러오기
+#     for file_name in os.listdir(input_path):
+#         file_path = os.path.join(input_path, file_name)
+
+#         doc = fitz.open(file_path)
+        
+#         # 전체 텍스트를 저장할 변수
+#         full_text = ""
+        
+#         # 모든 페이지에서 텍스트 추출
+#         for page in doc:
+#             full_text += page.get_text()
+        
+#         with open(output_file_path, 'w', encoding='utf-8') as f:
+#             f.write(full_text)
+        
+#         print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
 
 
-# pdf_file_path = "2023_사업별 세부설명자료-A.pdf"
-# output_file_path = "output_PyMuPDF.txt"
+# input_path = r'C:\python\pdf_python\test'
+# output_file_path = 'output_pymupdf.txt'
 
-# pdf_to_text(pdf_file_path, output_file_path)
+# pdf_to_text(input_path, output_file_path)
 
 #--------------------------------------------------------------------
 
 # import PyPDF2 #pip install PyPDF2
+# import os
 
-# def pdf_to_text(pdf_file_path, output_file_path):
+# def pdf_to_text(input_path, output_file_path):
 
-#     with open(pdf_file_path, 'rb') as pdf_file:
-#         pdf_reader = PyPDF2.PdfReader(pdf_file)
-        
-#         text = ''
-#         for page in pdf_reader.pages:
-#             text += page.extract_text() + '\n'  # 페이지별로 텍스트 추출하여 추가
+#     # 해당 폴더 안에 있는 파일 리스트(여러 파일) 불러오기
+#     for file_name in os.listdir(input_path):
+#         file_path = os.path.join(input_path, file_name)
+ 
+#         with open(file_path, 'rb') as pdf_file:
+#             pdf_reader = PyPDF2.PdfReader(pdf_file)
+            
+#             text = ''
+#             for page in pdf_reader.pages:
+#                 text += page.extract_text() + '\n'  # 페이지별로 텍스트 추출하여 추가
 
-#     with open(output_file_path, 'w', encoding='utf-8') as f:
-#         f.write(text)
+#         with open(output_file_path, 'w', encoding='utf-8') as f:
+#             f.write(text)
 
-#     print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
+#         print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
 
 
-# pdf_file_path = '2023_사업별 세부설명자료-A.pdf'
-# output_file_path = 'output_PyPDF2.txt'
+# input_path = r'C:\python\pdf_python\test'
+# output_file_path = 'output_pypdf2.txt'
 
-# pdf_to_text(pdf_file_path, output_file_path)
+# pdf_to_text(input_path, output_file_path)
