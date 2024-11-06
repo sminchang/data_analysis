@@ -9,11 +9,21 @@ import pdfplumber  # pip install pdfplumber
 from PyPDF2 import PdfReader, PdfWriter  # pip install PyPDF2
 import re
 import os
+import logging
 
 def pdf_table_extract(input_path, output_path, division_num):
+    
     # output 폴더가 없으면 생성
     if not os.path.exists(output_path):
         os.makedirs(output_path)
+
+    # 로그 파일 설정
+    logging.basicConfig(
+        filename=os.path.join(output_path, 'pdf_division.log'),
+        level=logging.INFO,
+        format='%(message)s',
+        encoding='utf-8'
+    )
 
     # 폴더 내 모든 파일 순회
     for file_name in os.listdir(input_path):
@@ -37,7 +47,7 @@ def pdf_table_extract(input_path, output_path, division_num):
                             text = page.extract_text().strip()
 
                             # 새 챕터의 시작이 껴있는 경우, 마지막 세출에 새 챕터의 총괄-세입이 딸려오는 예외처리
-                            if re.search(r"1.\s*총\s*괄", text):
+                            if re.search(r"1.\s+총\s+괄", text):
                                 if output_file:
                                     prev_page = pdf.pages[page_num - 1]
                                     prev_text = prev_page.extract_text().strip()
@@ -50,7 +60,7 @@ def pdf_table_extract(input_path, output_path, division_num):
                                     else:
                                         with open(output_file, 'wb') as output:
                                             pdf_writer.write(output)
-                                    print(f"새 챕터 확인할 파일명: 2022_02_{division_num-1:05d}")
+                                    logging.info(f"새 챕터 확인할 파일명: 2022_02_{division_num-1:05d}")
                                     pdf_writer = PdfWriter()
                                 output_file = None
                                 continue
@@ -82,17 +92,17 @@ def pdf_table_extract(input_path, output_path, division_num):
                                     pdf_writer.add_page(pdf_reader.pages[page_num])
 
                         except Exception as page_error:
-                            print(f"페이지 {page_num + 1} 처리 중 오류 발생: {str(page_error)} - 이 페이지는 건너뜁니다.")
+                            logging.error(f"페이지 {page_num + 1} 처리 중 오류 발생: {str(page_error)} - 이 페이지는 건너뜁니다.")
                     
                     # 마지막 문서 저장
                     if output_file and len(pdf_writer.pages) > 0:
                         with open(output_file, 'wb') as output:
                             pdf_writer.write(output)
                     
-                print(f"처리 완료: {file_name} / 마지막 파일명: {division_num-1}")
+                logging.info(f"처리 완료: {file_name} / 마지막 파일명: {division_num-1}")
             
             except Exception as e:
-                print(f"error: {str(e)} in file: {file_name}")
+                logging.error(f"error: {str(e)} in file: {file_name}")
 
 # 실행
 division_num = 6038  # 분할 시작 번호
