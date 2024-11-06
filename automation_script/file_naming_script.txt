@@ -5,21 +5,23 @@ rem 변수 옵션 설정(지역 변수화, 지연된 확장)
 setlocal enabledelayedexpansion
 
 
-set count=33
+set count=4234
 
-mkdir processed
+if not exist "processed" mkdir "processed"
 
 for %%f in (*.pdf) do (
     set "formatted_count=00000!count!" rem 카운트를 5자리 형식으로 포맷
     set "formatted_count=!formatted_count:~-5!"  rem 마지막 5자리만 사용
     
+    rem 임시 파일명 변경(파일명 중복 고려)
+    ren "%%f" "temp_!formatted_count!.pdf"
+    move "temp_!formatted_count!.pdf" "processed\"
+
     rem 파일명 변경
-    ren "%%f" "2022_02_!formatted_count!.pdf"
+    ren "processed\temp_!formatted_count!.pdf" "2022_02_!formatted_count!.pdf"
     
     rem 콘솔에 변경된 파일명 출력
-    echo Renaming %%f to 2022_02_!formatted_count!.pdf
-
-    move "2022_02_!formatted_count!.pdf" "processed\"
+    echo Renamed %%f to 2022_02_!formatted_count!.pdf
     
     set /a count+=1
 )
