@@ -89,7 +89,7 @@ def pdf_table_extract(input_path, output_path, division_num):
                         with open(output_file, 'wb') as output:
                             pdf_writer.write(output)
                     
-                print(f"처리 완료: {file_name}")
+                print(f"처리 완료: {file_name} / 마지막 파일명: {division_num-1}")
             
             except Exception as e:
                 print(f"error: {str(e)} in file: {file_name}")
