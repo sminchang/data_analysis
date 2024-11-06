@@ -29,12 +29,22 @@ def pdf_table_extract(input_path, output_path, division_num):
                             tables = page.extract_tables()
                             text = page.extract_text().strip()
 
-                            # 빈 페이지이거나 페이지 번호만 있는 경우
-                            if len(text) == 0 or re.match(r'^-\s*\d+\s*-$', text):
+                            # 새 챕터의 시작이 껴있는 경우, 마지막 세출에 새 챕터의 총괄-세입이 딸려오는 예외처리
+                            if re.search(r"1.\s*총\s*괄", text):
                                 if output_file:
-                                    with open(output_file, 'wb') as output:
-                                        pdf_writer.write(output)
-                                    pdf_writer = PdfWriter()  # 새로운 writer 생성
+                                    prev_page = pdf.pages[page_num - 1]
+                                    prev_text = prev_page.extract_text().strip()
+                                    if len(prev_text) == 0 or re.match(r'^-\s*\d+\s*-$', prev_text):
+                                        temp_writer = PdfWriter()
+                                        for i in range(len(pdf_writer.pages) - 2):
+                                            temp_writer.add_page(pdf_writer.pages[i])
+                                        with open(output_file, 'wb') as output:
+                                            temp_writer.write(output)
+                                    else:
+                                        with open(output_file, 'wb') as output:
+                                            pdf_writer.write(output)
+                                    print(f"새 챕터 확인할 파일명: 2022_02_{division_num-1:05d}")
+                                    pdf_writer = PdfWriter()
                                 output_file = None
                                 continue
                             
@@ -78,7 +88,7 @@ def pdf_table_extract(input_path, output_path, division_num):
                 print(f"error: {str(e)} in file: {file_name}")
 
 # 실행
-division_num = 1  # 분할 시작 번호
+division_num = 6038  # 분할 시작 번호
 input_path = r'C:\Users\User\Desktop\2021_pdf'
-output_path = r'C:\Users\User\Desktop\2021_division_v2'  # 저장될 경로 지정
+output_path = r'C:\Users\User\Desktop\2021_division'  # 저장될 경로 지정
 pdf_table_extract(input_path, output_path, division_num)
