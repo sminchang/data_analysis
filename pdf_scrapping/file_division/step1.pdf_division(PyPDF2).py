@@ -1,3 +1,10 @@
+# pymupdf는 내장 폰트 등의 문서 리소스를 페이지 단위로 저장하고
+# pypdf2는 내장 폰트 등의 문서 리소스를 파일 단위로 저장하기 때문에
+# 파일 크기 측면에서 pypdf2가 3~4배 정도 작은 파일 크기로 분할한다.
+# pymupdf는 pypdf2보다 다양한 pdf 구조를 처리할 수 있다.
+# pypdf2에서 안정성이 떨어지는 경우가 아니라면 pypdf2가 나아보인다.
+
+
 import pdfplumber  # pip install pdfplumber
 from PyPDF2 import PdfReader, PdfWriter  # pip install PyPDF2
 import re
