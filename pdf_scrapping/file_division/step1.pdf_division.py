@@ -41,7 +41,7 @@ def pdf_division(input_path, output_path, division_standard):
                 print(f"error: {str(e)} in file: {file_name}")
 
 # 실행
-division_standard = 3000  # 분할 기준 번호
+division_standard = 3000  # 분할 기준 페이지 번호
 input_path = r'C:\Users\User\Desktop\test'
 output_path = r'C:\Users\User\Desktop\test'  # 저장될 경로 지정
 pdf_division(input_path, output_path, division_standard)
