@@ -12,12 +12,12 @@ set /p "file_pattern=처리할 파일 확장자를 입력하세요 (예: pdf): "
 set /p "prefix=새 파일명의 접두어를 입력하세요 (예: 2021_01): "
 
 rem 새 파일명의 초기 순번 입력 받기
-set /p "start_number=새 파일명의 초기 순번을 입력하세요 (예: 1): "
+set /p "start_number=새 파일명의 접미어(초기 순번)을 입력하세요 (예: 1): "
 set count=%start_number%
 
 rem PowerShell을 사용하여 파일 목록 정렬 후 처리
 for /f "delims=" %%f in ('powershell -command "Get-ChildItem -Path . -Filter *.%file_pattern% | Sort-Object {[regex]::Replace($_.Name, '\d+', {$args[0].Value.PadLeft(20)})} | ForEach-Object { $_.Name }"') do (
-    rem 파일명에 순번을 붙여서 5자리로 맞추기
+    rem 점미어 5자리 숫자로 포맷 설정
     set "formatted_count=00000!count!"
     set "formatted_count=!formatted_count:~-5!"
 
