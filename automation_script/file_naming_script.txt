@@ -1,30 +1,38 @@
-rem 기본적으로 콘솔에 실행 명령어가 출력되지 않도록 설정
 @echo off
-
-rem 변수 옵션 설정(지역 변수화, 지연된 확장)
 setlocal enabledelayedexpansion
 
+rem 기본 변수 설정
+set count=1
 
-set count=4234
-
+rem "processed" 폴더가 없으면 생성
 if not exist "processed" mkdir "processed"
 
-for %%f in (*.pdf) do (
-    set "formatted_count=00000!count!" rem 카운트를 5자리 형식으로 포맷
-    set "formatted_count=!formatted_count:~-5!"  rem 마지막 5자리만 사용
-    
-    rem 임시 파일명 변경(파일명 중복 고려)
-    ren "%%f" "temp_!formatted_count!.pdf"
-    move "temp_!formatted_count!.pdf" "processed\"
+rem 파일 확장자 및 접두어 입력 받기
+set /p "file_pattern=처리할 파일 확장자를 입력하세요 (예: pdf): "
+set /p "prefix=새 파일명의 접두어를 입력하세요 (예: 2021_01): "
 
-    rem 파일명 변경
-    ren "processed\temp_!formatted_count!.pdf" "2022_02_!formatted_count!.pdf"
-    
-    rem 콘솔에 변경된 파일명 출력
-    echo Renamed %%f to 2022_02_!formatted_count!.pdf
-    
+rem 새 파일명의 초기 순번 입력 받기
+set /p "start_number=새 파일명의 초기 순번을 입력하세요 (예: 1): "
+set count=%start_number%
+
+rem PowerShell을 사용하여 파일 목록 정렬 후 처리
+for /f "delims=" %%f in ('powershell -command "Get-ChildItem -Path . -Filter *.%file_pattern% | Sort-Object {[regex]::Replace($_.Name, '\d+', {$args[0].Value.PadLeft(20)})} | ForEach-Object { $_.Name }"') do (
+    rem 파일명에 순번을 붙여서 5자리로 맞추기
+    set "formatted_count=00000!count!"
+    set "formatted_count=!formatted_count:~-5!"
+
+    rem 임시 파일명으로 이름 변경 후 processed 폴더로 이동
+    ren "%%f" "temp_!formatted_count!.%file_pattern%"
+    move "temp_!formatted_count!.%file_pattern%" "processed\"
+
+    rem 새 파일명으로 변경
+    ren "processed\temp_!formatted_count!.%file_pattern%" "%prefix%_!formatted_count!.%file_pattern%"
+
+    rem 변경된 파일명 출력
+    echo Renamed %%f to %prefix%_!formatted_count!.%file_pattern%
+
+    rem 카운트 증가
     set /a count+=1
 )
 
-rem 스크립트 종료 후 일시 정지(실행 결과 확인)
 pause
