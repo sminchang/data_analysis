@@ -69,7 +69,7 @@ def pdf_division(input_path, output_path, division_num):
                                 expenditure_table = any(len(table) == 2 and len(table[0]) == 1 and re.fullmatch(r'사\s*업\s*명', table[0][0]) for table in tables)
 
                                 # 세출 부분 분할
-                                if expenditure_table:
+                                if expenditure_table  or re.search(r'사업\s+지원\s+형태', text): #사업명이 테이블로 인식되지 않는 경우가 있어 텍스트 정규 표현식도 조건에 추가
                                     # 이전 문건 저장
                                     if output_file and len(pdf_writer.pages) > 0:
                                         with open(output_file, 'wb') as output:
