@@ -11,7 +11,7 @@ import re
 import os
 import logging
 
-def pdf_table_extract(input_path, output_path, division_num):
+def pdf_division(input_path, output_path, division_num):
     
     # output 폴더가 없으면 생성
     if not os.path.exists(output_path):
@@ -108,4 +108,4 @@ def pdf_table_extract(input_path, output_path, division_num):
 division_num = 6038  # 분할 시작 번호
 input_path = r'C:\Users\User\Desktop\2021_pdf'
 output_path = r'C:\Users\User\Desktop\2021_division'  # 저장될 경로 지정
-pdf_table_extract(input_path, output_path, division_num)
+pdf_division(input_path, output_path, division_num)
