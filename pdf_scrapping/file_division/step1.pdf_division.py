@@ -1,3 +1,5 @@
+# 특정 페이지를 기준으로 파일을 분할하는 스크립트
+
 from PyPDF2 import PdfReader, PdfWriter  # pip install PyPDF2
 import os
 
