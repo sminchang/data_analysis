@@ -1,4 +1,4 @@
-# pypdf2에서 폰트 및 기타 리소스 인식에 문제가 생길 경우 pymupdf로 같은 파일을 분할해볼 것을 추천한다.
+# pypdf2에서 폰트 및 기타 리소스 인식에 문제가 생길 경우 pymupdf로 해당 파일을 분할해볼 것을 추천한다.
 
 import fitz  # pip install PyMuPDF
 import pdfplumber  # pip install pdfplumber
