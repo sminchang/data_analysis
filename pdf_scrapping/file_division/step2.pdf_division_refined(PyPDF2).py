@@ -82,13 +82,11 @@ def pdf_division(input_path, output_path, division_num):
                                     division_num += 1
 
                                 # 테이블이 있지만 분할 기준이 없는 페이지
-                                else:
-                                    if output_file:
+                                elif output_file:
                                         pdf_writer.add_page(pdf_reader.pages[page_num])
 
                             # 테이블이 없는 페이지
-                            else:
-                                if output_file:
+                            elif output_file:
                                     pdf_writer.add_page(pdf_reader.pages[page_num])
 
                         except Exception as page_error:
