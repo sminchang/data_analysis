@@ -47,7 +47,7 @@ def pdf_division(input_path, output_path, division_num):
                             text = page.extract_text().strip()
 
                             # 새 챕터의 시작이 껴있는 경우, 마지막 세출에 새 챕터의 총괄-세입이 딸려오는 예외처리
-                            if re.search(r"1\.\s+총\s+괄", text):
+                            if re.search(r"1\.\s+총\s*괄", text):
                                 if output_file:
                                     prev_page = pdf.pages[page_num - 1]
                                     prev_text = prev_page.extract_text().strip()
