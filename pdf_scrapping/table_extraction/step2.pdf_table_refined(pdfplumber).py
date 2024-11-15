@@ -1,5 +1,4 @@
 # refined data source: https://www.openfiscaldata.go.kr/op/ko/bs/UOPKOBSA02
-# step1에서 조건없이 테이블 추출하여 구조 파악 후 필요한 추출 조건 추가
 
 import pdfplumber #pip install pdfplumber
 import pandas as pd #pip install pandas, pip install openpyxl
@@ -34,12 +33,8 @@ def pdf_table_extract(input_path, output_file):
             'detailed_business_code': "",   # 세부사업코드
             'detailed_business_name': "",   # 세부사업명
             # C 테이블
-            'N_2': "-",                      # N-2년전 결산
-            'N_last_1': "",                 # N-1년전 본예산
-            'N_last_2': "",                 # N-1년전 추경
-            'N_main_1': "",                 # N년 본예산
-            'N_main_2': ""                  # N년 추경
-                                            # 증감률, A/B에 적용하는 A와 B가 문건마다 달라 통일된 기준으로 직접 추산 예정
+            'N_main_name': "",                 # 당해 예산명
+            'N_main_value': "",                 # 당해 예산값
         }
 
         if file_name.endswith('.pdf'):
@@ -50,19 +45,17 @@ def pdf_table_extract(input_path, output_file):
                 # pdf 파일 열기
                 with pdfplumber.open(file_path) as pdf:
 
-                    # 파일 내 모든 페이지 순회
-                    for page in pdf.pages:
+                    #파일 내 페이지 단위 순회, 최대 3페이지까지만 검토
+                    max_pages = min(3, len(pdf.pages))
+                    for page_num in range(max_pages):
+                        page = pdf.pages[page_num]
                         tables = page.extract_tables()
+
                         if len(tables) > 0:
                             # 페이지 내 모든 테이블 순회
                             for table in tables:
                             # A 테이블 패턴 발견
                                 if len(table[0]) > 2 and table[0][2] == "소관":
-
-                                    # C 테이블 생략 체크
-                                    if any(value != "" for value in document_set.values()):
-                                        excel_data.append([file_name] + list(document_set.values()))
-                                        document_set = {key: "" for key in document_set}
 
                                     if len(table[0]) == 7 and len(table) == 3: # 기본 테이블 구조와 다른 경우 예외처리
                                         # 회계 처리
@@ -82,7 +75,7 @@ def pdf_table_extract(input_path, output_file):
                                         # 소관 처리
                                         jurisdiction = table[1][2]
                                         if table[2][2] == None:
-                                            if "518민주화" not in jurisdiction and "1029이태원" not in jurisdiction:
+                                            if "518민주화" not in jurisdiction and "1029이태원" not in jurisdiction: # 소관명이 숫자값인 경우 예외처리
                                                 try:
                                                     jurisdiction_match = re.search(r"(\d+)\s*([\s\S]+)", jurisdiction)
                                                     document_set['jurisdiction_code'] = jurisdiction_match.group(1)
@@ -138,51 +131,30 @@ def pdf_table_extract(input_path, output_file):
                                 # C 테이블 패턴 발견
                                 elif (len(table[0]) > 1 and isinstance(table[0][1], str) and re.match(r'^\d{4}년\s*결산', table[0][1])):
                                     
-                                    document_set['N_2'] = table[2][1]
-                                    document_set['N_last_1'] = table[2][2]
-
-                                    # 기본 테이블 구조(3x8, N-1년에 2개 항목, N년에 2개 항목)
-                                    if len(table) <= 3 and table[0][3] is None and table[0][5] is None and table[0][6] is not None:
-                                        document_set['N_last_2'] = table[2][3]
-                                        document_set['N_main_1'] = table[2][4]
-                                        document_set['N_main_2'] = table[2][5]
-
-                                    # 예시) N-1년에 1개 항목, N년에 2개 항목
-                                    # elif len(table) <= 3 and table[0][3] is not None and table[0][4] is None and table[0][5] is not None:
-                                    #     document_set['N_last_2'] = ""
-                                    #     document_set['N_main_1'] = table[2][3]
-                                    #     document_set['N_main_2'] = table[2][4]
+                                    try:
+                                        # 병합 셀의 경우, 맨 앞 셀에만 기존값이 들어가고 뒷 셀에는 None값이 들어가는 점을 활용
+                                        document_set['N_main_name'] = f"check/{table[0][-3]}" if table[-2][-3] is None else table[-2][-3]
+                                        document_set['N_main_value'] = table[-1][-3]
+                                    except Exception as e:
+                                        document_set['N_main_name'] = "error/예산 테이블 구조 확인 요구"
                                     
-                                    else:
-                                        # 그 외 다양한 형식
-                                        # (len(table) > 3)인 경우
-                                        # N-1년에 1개 항목, N년에 1개 항목
-                                        # N-1년에 1개 항목, N년에 3개 항목
-                                        # N-1년에 2개 항목, N년에 1개 항목
-                                        # N-1년에 2개 항목, N년에 3개 항목
-                                        # N-1년에 3개 항목, N년에 1개 항목
-                                        # N-1년에 3개 항목, N년에 2개 항목
-                                        # N-1년에 3개 항목, N년에 3개 항목
-                                        document_set['N_2'] = "error/예산 테이블 구조 확인 요구"
-                                    
-                                    excel_data.append([file_name] + list(document_set.values()))
-                                    document_set = {key: "" for key in document_set} # 모든 값 초기화
+                    excel_data.append([file_name] + list(document_set.values()))
+                    document_set = {key: "" for key in document_set} # 모든 값 초기화
     
             except Exception as e:
-                excel_data.append([file_name, "파일 열기 오류 발생", str(e)] + [""] * 20)
+                excel_data.append([file_name, "파일 열기 오류 발생", str(e)] + [""] * 16)
     
 
     # 엑셀 저장
     columns = ["유니코드", "회계코드", "회계명", "소관코드", "소관명", "계정코드", "계정명", 
                 "분야코드", "분야명", "부문코드", "부문명", "프로그램코드", "프로그램명", "단위사업코드", 
-                "단위사업명", "세부사업코드", "세부사업명", "N-2년_결산", "N-1년_본예산", "N-1년_추경", 
-                "N년_본예산", "N년_추경"]
+                "단위사업명", "세부사업코드", "세부사업명", "당해 예산명", "당해 예산값"]
     df = pd.DataFrame(excel_data, columns=columns)
     df.to_excel(output_file, index=False)
     print(f"데이터가 {output_file}로 저장되었습니다.")
 
 
 # 실행
-input_path = r'C:\Users\User\Desktop\2024_pdf'
-output_file = 'pdf_table_2024.xlsx'
+input_path = r'C:\Users\User\Desktop\2023_세출'
+output_file = r'C:\Users\User\Desktop\2023_세출_v2.xlsx'
 pdf_table_extract(input_path, output_file)
