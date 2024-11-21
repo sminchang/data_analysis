@@ -1,6 +1,5 @@
 # refined data source: https://www.gg.go.kr/bbs/board.do?bsIdx=619&menuId=1765
-# pdfplumber, 탭 문자를 하나의 공백 문자로 처리한다.
-# 항목별로 텍스트를 추출하는 스크립트
+# pdfplumber는 원본 형식을 가장 잘 맞춘다. 하지만 연속된 개행 문자(탭 문자)를 처리하지 못한다.
 
 import pdfplumber #pip install pdfplumber
 import re
