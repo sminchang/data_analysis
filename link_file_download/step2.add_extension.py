@@ -44,7 +44,7 @@ def get_extension_name(content_disposition):
     # Content-Disposition에서 파일 이름 추출
     fname = re.findall('filename="(.+)"', content_disposition)
     if len(fname) == 0:
-        fname = re.findall("filename\*=UTF-8''(.+)", content_disposition)
+        fname = re.findall(r"filename\*=UTF-8''(.+)", content_disposition)
     
     if len(fname) > 0:
         # 파일 이름에서 확장자만 추출
