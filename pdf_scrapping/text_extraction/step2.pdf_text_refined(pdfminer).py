@@ -1,6 +1,5 @@
 # refined data source: https://www.gg.go.kr/bbs/board.do?bsIdx=619&menuId=1765
-# pdfminer는 개행처리가 명확하다.
-# 항목별로 텍스트를 추출하는 스크립트
+# pdfminer는 탭 문자를 포함한 개행처리가 명확하다. 하지만 pdfplumber보다는 원본 형식을 못살린다.
 
 import re
 import os
