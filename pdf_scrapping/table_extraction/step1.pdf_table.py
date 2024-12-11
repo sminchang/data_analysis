@@ -26,6 +26,7 @@ def pdf_table_extract(input_path, output_file):
                             #행 단위 데이터 추출
                             for row in table:
                                 excel_data.append([file_name] + row)
+                            excel_data.append([]) # 테이블 간 공백 행 추가
 
             except Exception as e:
                 print(f"오류 발생: {e}"+file_name)
