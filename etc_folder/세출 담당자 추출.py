@@ -1,8 +1,9 @@
 # 테이블 식별 시 헤더열은 고정되어있기에 헤더열에서 기준을 잡는 것이 좋고,
 # 실.국의 경우 .에 해당하는 특수문자가 사업마다 상이할 수 있어 과(팀)을 테이블 식별 기준으로 잡음
 
-# 실국 혹은 과(팀) 내부적으로 개행이 발생한 경우는 제대로 추출이 안됨, "실국과(팀)"이 들어간 단어 "잘린" 단어 직접 확인-수정해야함
-                                                    
+# <수작업 목록>
+# 1. 실국 혹은 과(팀) 내부적으로 개행이 발생한 경우는 제대로 추출이 안됨, 이상하게 잘린 단어를 직접 확인-수정해야함(2023_02_00726, 2023_02_02964 예시)                                                    
+# 2. 실국과(팀)만 출력되는 행이 생길 수 있음, 예외처리하다가 예기치 않게 누락되는 행이 생길까봐 처리하지 않음, 해당 행 찾아서 삭제해야함
 
 import pdfplumber #pip install pdfplumber
 import traceback
@@ -12,22 +13,28 @@ import pandas as pd #pip install pandas, pip install openpyxl
 
 def B_C_table_process(table, file_name, data, part):
     # table에서 첫 번째 행을 제외한 나머지 행을 순회하면서 조건에 맞는 값을 추출
-    for idx, row in enumerate(table[1:]):  # 첫 번째 행을 제외한 부분
+    for idx, row in enumerate(table[1:], start=1):  # 첫 번째 행을 제외한 부분
         
         # 같은 열에서 실국, 과팀을 별개 행으로 구분하는 경우
         if (row[0] is None and  # row[0]이 None이 아닌 경우는 사업명이 적혀 있음
             row[2] is not None and  # index list out of range 예외처리
             table[idx-1][0] is not None and  # 바로 윗 행에 사업명이 있는지 확인 후 다음 행 정보까지 한 번에 추출
-            (idx + 1) < len(table[1:]) and  # 마지막 인덱스가 오버되는 경우 예외처리
-            row[1] != "사업시행주체" and table[idx+1][1] != "사업시행주체"):  # 행과 행 사이에 "사업시행주체" 행이 존재하는 경우 생략
-            part[0] = row[2]
-            part[1] = table[idx+1][2]
-        
+            (idx + 1) <= len(table[1:]) and  # 마지막 인덱스가 오버되는 경우 예외처리
+            row[1] != "사업시행주체" and (table[idx][1] != "사업시행주체" or table[idx+1][1] != "사업시행주체")):  # 행과 행 사이에 "사업시행주체" 행이 존재하는 경우 생략
+            if table[idx+1][2] is not None:
+                part[0] = row[2]
+                part[1] = table[idx+1][2]
+            # 테이블 F 유형, [["사업명","구분","None"...],["oo사업","소관부처","실국과(팀)",OO국\nOO과"...],[None,None,None,"044-202-7348"...]...]
+            else:
+                row_parts = row[2].split('\n')
+                part[0] = row_parts[0] if len(row_parts) > 0 else row[2]
+                part[1] = '\n'.join(row_parts[1:]) if len(row_parts) > 1 else ""
+
         # 한 행에 실국과팀을 개행 문자로만 구분하고 묶어놓은 경우
         elif row[0] is not None and row[2] is not None:
             row_parts = row[2].split('\n')
             part[0] = row_parts[1] if len(row_parts) > 1 else row[2]
-            part[1] = row_parts[2] if len(row_parts) > 2 else ""
+            part[1] = '\n'.join(row_parts[2:]) if len(row_parts) > 2 else ""
         
         else:
             continue
@@ -61,6 +68,7 @@ def extract_text_to_file(input_path, output_file):
                             if len(tables) > 0:
                             # 페이지 내 모든 테이블 순회
                                 for table in tables:
+
                                     if table and len(table[0]) >= 3 and table[0][1] is not None and table[0][2] is not None:
                                         # 테이블 A 유형, [["실국","과(팀)"...]...]
                                         if re.search(r'과\s*\(?팀\s*\)?', str(table[0][1])):
@@ -86,8 +94,8 @@ def extract_text_to_file(input_path, output_file):
                                             for row in table[1:]:
                                                 part1_splits = row[1].split('\n',1)
                                                 part2_splits = row[2].split('\n',1)
-                                                part[0] = part1_splits[1] if len(part1_splits) > 1 else row[1]
-                                                part[1] = part2_splits[1] if len(part2_splits) > 1 else row[2]
+                                                part[0] = '\n'.join(part1_splits[1:]) if len(part1_splits) > 1 else row[1]
+                                                part[1] = '\n'.join(part2_splits[1:]) if len(part2_splits) > 1 else row[2]
                                                 data.append((file_name, part[0], part[1]))
                                             break
 
@@ -130,14 +138,14 @@ def extract_text_to_file(input_path, output_file):
 
 
     # 결과를 엑셀 파일로 저장
-    columns = ['유니코드', '실국', '과팀']
+    columns = ['유니코드', '실국', '과(팀)']
     df = pd.DataFrame(data, columns=columns)
     df.to_excel(output_file, index=False)
 
     print(f"데이터가 '{output_file}'에 저장되었습니다.")
 
 
-input_path = r"C:\Users\고객관리\Desktop\2-1 분할본\2023_세출"
-output_file = r'C:\Users\고객관리\Desktop\2023_세출_담당자_v7.xlsx'
+input_path = r"C:\Users\Minchang Sung\Desktop\2023_세출"
+output_file = r'C:\Users\Minchang Sung\Desktop\2023_세출_담당자_v8.xlsx'
 
 extract_text_to_file(input_path, output_file)
