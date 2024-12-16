@@ -14,36 +14,34 @@ def B_C_table_process(table, file_name, data, part):
     # table에서 첫 번째 행을 제외한 나머지 행을 순회하면서 조건에 맞는 값을 추출
     for idx, row in enumerate(table[1:], start=1):  # 첫 번째 행을 제외한 부분
         
+        if skip_next:
+            skip_next = False
+            continue
+
         #셀에 컬럼명만 있을 경우 생략
-        if (row[2] is not None and
+        elif (row[2] is not None and
             re.search(r'실.*국.*과*.팀*.\)?', str(row[2])) and
             len(row[2].split('\n')) == 1):
                 continue
 
-        # 테이블 F 유형, [["사업명","구분","None"...],["oo사업","소관부처","실국과(팀)",OO국"],[None,None,"OO과"...]]
-        # 같은 열에서 실국, 과팀을 별개 행으로 구분하는 경우
-        elif (row[0] is None and  # row[0]이 None이 아닌 경우는 사업명이 적혀 있음
-            row[2] is not None and  # index list out of range 예외처리
-            table[idx-1][1] == "소관부처" and  # 바로 윗 행에 사업명이 있는지 확인 후 다음 행 정보까지 한 번에 추출
-            row[1] != "사업시행주체"):
-            if (idx + 1) <= len(table[1:]) and table[idx+1][1] != "사업시행주체":  # 행과 행 사이에 "사업시행주체" 행이 존재하는 경우 생략
-                if table[idx+1][2] is not None:
+        elif (row[0] is None and
+            row[2] is not None and 
+            (row[1] is None or (row[1] is not None and row[1] != "사업시행주체"))):
+            # 테이블 F 유형, [["사업명","구분","None"...],["oo사업","소관부처","실국과(팀)\nOO국"],[None,None,"OO과"...]]
+            if ((idx + 1) <= len(table[1:]) and 
+                table[idx+1][1] is None and 
+                table[idx+1][2] is not None):
                     part[0] = row[2]
                     part[1] = table[idx+1][2]
-                else:
-                    row_parts = row[2].split('\n')
-                    part[0] = row_parts[0] if len(row_parts) > 1 else row[2]
-                    part[1] = '\n'.join(row_parts[1:]) if len(row_parts) >= 2 else ""
-            # 테이블 G 유형, [["사업명","구분","None"...],["oo사업","소관부처","실국과(팀)",OO국\nOO과"...],[None,None,None,"044-202-7348"...]...]
-            elif (re.search(r'실.*국.*과*.팀*.\)?', str(table[idx-1][2])) and 
-                  len(row[2].split('\n')) > 1):
-                    row_parts = row[2].split('\n')
-                    part[0] = row_parts[0] if len(row_parts) > 1 else row[2]
-                    part[1] = '\n'.join(row_parts[1:]) if len(row_parts) >= 2 else ""
+                    skip_next = True  # 다음 행 건너뛰기 플래그
+            else:
+                row_parts = row[2].split('\n')
+                part[0] = row_parts[0] if len(row_parts) > 1 else row[2]
+                part[1] = '\n'.join(row_parts[1:]) if len(row_parts) >= 2 else ""
 
         # 일반적인 B,C 유형
-        elif (row[1] is not None and
-               row[1] != "사업시행주체" and
+        elif ((row[1] is None or 
+               (row[1] is not None and row[1] != "사업시행주체")) and 
                row[2] is not None):
             row_parts = row[2].split('\n')
             part[0] = row_parts[1] if len(row_parts) > 1 else row[2]
@@ -158,7 +156,7 @@ def extract_text_to_file(input_path, output_file):
     print(f"데이터가 '{output_file}'에 저장되었습니다.")
 
 
-input_path = r"C:\Users\Minchang Sung\Desktop\2023_세출"
-output_file = r'C:\Users\Minchang Sung\Desktop\2023_세출_담당자_v9.xlsx'
+input_path = r"C:\Users\고객관리\Desktop\test" #\2-1 분할본\2023_세출"
+output_file = r"C:\Users\고객관리\Desktop\tset.xlsx" #\2023_세출_담당자_v10.xlsx"
 
 extract_text_to_file(input_path, output_file)
