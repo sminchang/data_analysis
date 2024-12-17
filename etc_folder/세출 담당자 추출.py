@@ -21,38 +21,35 @@ def B_C_table_process(table, file_name, data, part):
             len(row[2].split('\n')) == 1):
                 continue
 
-        elif (row[0] is None and
-            row[2] is not None and 
+        elif (row[2] is not None and 
             (row[1] is None or (row[1] is not None and row[1] != "사업시행주체"))):
             # 행 분할 b 유형, 2행(1) 분할 [..."실국과(팀)\nOO실,..], [...“OO과"...]
             # 행 분할 c 유형, 3행 분할 [..."실국과(팀)”...], [...“OO실”...], [...“OO과"...] #컬럼명만 있는 행 생략 후 b 유형과 동일하게 동작
-            if ((idx + 1) <= len(table[1:]) and 
-                table[idx+1][1] is None and 
-                table[idx+1][2] is not None):
-                    part[0] = row[2]
-                    part[1] = table[idx+1][2]
-                    skip_next = True  # 다음 행 건너뛰기 플래그
-            
+            if row[0] is None:
+                if ((idx + 1) <= len(table[1:]) and 
+                    table[idx+1][1] is None and 
+                    table[idx+1][2] is not None):
+                        part[0] = row[2]
+                        part[1] = table[idx+1][2]
+                        skip_next = True  # 다음 행 건너뛰기 플래그
+                
+                # 사업시행주체가 2행 분할된 경우, 행 생략
+                elif row[1] is None and table[idx-1][1] == "사업시행주체":
+                    continue
 
-            # 행 분할 d 유형, 2행(2) 분할 [..."실국과(팀)”...], [...\nOO실\nOO과”...]
+                # 행 분할 d 유형, 2행(2) 분할 [..."실국과(팀)”...], [...\nOO실\nOO과”...]
+                else:
+                    row_parts = row[2].split('\n')
+                    part[0] = row_parts[0] if len(row_parts) > 1 else row[2]
+                    part[1] = '\n'.join(row_parts[1:]) if len(row_parts) >= 2 else ""
+
+            # 행 분할 a 유형, 1행 통합 [..."실국과(팀)\nOO실\nOO과”...]
             else:
                 row_parts = row[2].split('\n')
-                part[0] = row_parts[0] if len(row_parts) > 1 else row[2]
-                part[1] = '\n'.join(row_parts[1:]) if len(row_parts) >= 2 else ""
+                part[0] = row_parts[1] if len(row_parts) > 1 else row[2]
+                part[1] = '\n'.join(row_parts[2:]) if len(row_parts) >= 2 else ""
 
-        # 행 분할 a 유형, 1행 통합 [..."실국과(팀)\nOO실\nOO과”...]
-        elif ((row[1] is None or 
-               (row[1] is not None and row[1] != "사업시행주체")) and 
-               row[2] is not None):
-            row_parts = row[2].split('\n')
-            part[0] = row_parts[1] if len(row_parts) > 1 else row[2]
-            part[1] = '\n'.join(row_parts[2:]) if len(row_parts) >= 2 else ""
-
-        # 혹 행 분할 유형에 담기지 않은 경우 예외 처리
-        elif row[2] is not None:
-            part[0] = "exception"
-            part[1] = "exception"
-        
+        # row[1]이 "사업시행주체"인 경우, row[2]가 None인 경우
         else:
             continue
         
@@ -160,7 +157,6 @@ def extract_text_to_file(input_path, output_file):
     df.to_excel(output_file, index=False)
 
     print(f"데이터가 '{output_file}'에 저장되었습니다.")
-
 
 input_path = r"C:\Users\고객관리\Desktop\2-1 분할본\2023_세출"
 output_file = r"C:\Users\고객관리\Desktop\2023_세출_담당자_v10.xlsx"
