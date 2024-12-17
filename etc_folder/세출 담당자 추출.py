@@ -1,8 +1,4 @@
-# 테이블 식별 시 헤더열은 고정되어있기에 헤더열에서 기준을 잡는 것이 좋고,
-# 실.국의 경우 .에 해당하는 특수문자가 사업마다 상이할 수 있어 과(팀)을 테이블 식별 기준으로 잡음
-
-# <수작업 목록>
-# 1. 실국 혹은 과(팀) 내부적으로 개행이 발생한 경우는 제대로 추출이 안됨, 이상하게 잘린 단어를 직접 확인-수정해야함(2023_02_00726, 2023_02_02964 예시)                                                    
+# 실국 혹은 과(팀) 내부적으로 개행이 발생하여 이상하게 잘린 단어를 직접 확인-수정해야함
 
 import pdfplumber #pip install pdfplumber
 import traceback
@@ -11,6 +7,7 @@ import os
 import pandas as pd #pip install pandas, pip install openpyxl
 
 def B_C_table_process(table, file_name, data, part):
+    skip_next = False
     # table에서 첫 번째 행을 제외한 나머지 행을 순회하면서 조건에 맞는 값을 추출
     for idx, row in enumerate(table[1:], start=1):  # 첫 번째 행을 제외한 부분
         
@@ -18,7 +15,7 @@ def B_C_table_process(table, file_name, data, part):
             skip_next = False
             continue
 
-        #셀에 컬럼명만 있을 경우 생략
+        # 컬럼명만 있는 경우, 행 생략
         elif (row[2] is not None and
             re.search(r'실.*국.*과*.팀*.\)?', str(row[2])) and
             len(row[2].split('\n')) == 1):
@@ -27,25 +24,34 @@ def B_C_table_process(table, file_name, data, part):
         elif (row[0] is None and
             row[2] is not None and 
             (row[1] is None or (row[1] is not None and row[1] != "사업시행주체"))):
-            # 테이블 F 유형, [["사업명","구분","None"...],["oo사업","소관부처","실국과(팀)\nOO국"],[None,None,"OO과"...]]
+            # 행 분할 b 유형, 2행(1) 분할 [..."실국과(팀)\nOO실,..], [...“OO과"...]
+            # 행 분할 c 유형, 3행 분할 [..."실국과(팀)”...], [...“OO실”...], [...“OO과"...] #컬럼명만 있는 행 생략 후 b 유형과 동일하게 동작
             if ((idx + 1) <= len(table[1:]) and 
                 table[idx+1][1] is None and 
                 table[idx+1][2] is not None):
                     part[0] = row[2]
                     part[1] = table[idx+1][2]
                     skip_next = True  # 다음 행 건너뛰기 플래그
+            
+
+            # 행 분할 d 유형, 2행(2) 분할 [..."실국과(팀)”...], [...\nOO실\nOO과”...]
             else:
                 row_parts = row[2].split('\n')
                 part[0] = row_parts[0] if len(row_parts) > 1 else row[2]
                 part[1] = '\n'.join(row_parts[1:]) if len(row_parts) >= 2 else ""
 
-        # 일반적인 B,C 유형
+        # 행 분할 a 유형, 1행 통합 [..."실국과(팀)\nOO실\nOO과”...]
         elif ((row[1] is None or 
                (row[1] is not None and row[1] != "사업시행주체")) and 
                row[2] is not None):
             row_parts = row[2].split('\n')
             part[0] = row_parts[1] if len(row_parts) > 1 else row[2]
             part[1] = '\n'.join(row_parts[2:]) if len(row_parts) >= 2 else ""
+
+        # 혹 행 분할 유형에 담기지 않은 경우 예외 처리
+        elif row[2] is not None:
+            part[0] = "exception"
+            part[1] = "exception"
         
         else:
             continue
@@ -156,7 +162,7 @@ def extract_text_to_file(input_path, output_file):
     print(f"데이터가 '{output_file}'에 저장되었습니다.")
 
 
-input_path = r"C:\Users\고객관리\Desktop\test" #\2-1 분할본\2023_세출"
-output_file = r"C:\Users\고객관리\Desktop\tset.xlsx" #\2023_세출_담당자_v10.xlsx"
+input_path = r"C:\Users\고객관리\Desktop\2-1 분할본\2023_세출"
+output_file = r"C:\Users\고객관리\Desktop\2023_세출_담당자_v10.xlsx"
 
 extract_text_to_file(input_path, output_file)
