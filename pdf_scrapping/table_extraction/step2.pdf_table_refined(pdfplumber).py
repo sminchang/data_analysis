@@ -133,6 +133,7 @@ def pdf_table_extract(input_path, output_file):
                                     
                                     try:
                                         # 병합 셀의 경우, 맨 앞 셀에만 기존값이 들어가고 뒷 셀에는 None값이 들어가는 점을 활용
+                                        # 최종예산은 예산명 뒤에 항상 “(B)”가 붙는다는 점과 마지막에서 3번째 열에 위치한다는 패턴 활용
                                         document_set['N_main_name'] = f"check/{table[0][-3]}" if table[-2][-3] is None else table[-2][-3]
                                         document_set['N_main_value'] = table[-1][-3]
                                     except Exception as e:
