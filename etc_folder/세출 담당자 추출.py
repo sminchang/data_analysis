@@ -1,6 +1,8 @@
 # 실국 혹은 과(팀) 내부적으로 개행이 발생하여 이상하게 잘린 단어를 직접 확인-수정해야함
 # 테이블 형식이 깨져서 실국과(팀)이 한 셀에 몰려서 저장된 경우도 찾아서 확인-수정해야함
 
+#247, 6583으로 테스트 중, 테스트 실패 원인 분석하기
+
 import pdfplumber #pip install pdfplumber
 import traceback
 import re
@@ -8,12 +10,12 @@ import os
 import pandas as pd #pip install pandas, pip install openpyxl
 
 def B_C_table_process(table, file_name, data, part):
-    skip_next = False
+    skip_next_flag = False
     # table에서 첫 번째 행을 제외한 나머지 행을 순회하면서 조건에 맞는 값을 추출
     for idx, row in enumerate(table[1:], start=1): 
         
-        if skip_next:
-            skip_next = False
+        if skip_next_flag:
+            skip_next_flag = False
             continue
 
         # 컬럼명만 있는 경우, 행 생략
@@ -25,19 +27,23 @@ def B_C_table_process(table, file_name, data, part):
         elif (row[2] is not None and 
             (row[1] is None or (row[1] is not None and row[1] != "사업시행주체"))):
             if row[0] is None:
-                
+
                 # 행 분할 b 유형, 2행 분할 [..."실국과(팀)\nOO실,..], [...“OO과"...]
                 # 행 분할 c 유형, 3행 분할 [..."실국과(팀)”...], [...“OO실”...], [...“OO과"...] #컬럼명만 있는 행 생략 후 b 유형과 동일하게 동작
                 if ((idx + 1) <= len(table[1:]) and 
                     table[idx+1][1] is None and 
                     table[idx+1][2] is not None):
-                        part[0] = row[2]
-                        part[1] = table[idx+1][2]
-                        skip_next = True  # 다음 행 건너뛰기 플래그
-                
-                # 사업시행주체가 2행 분할된 경우, 행 생략
-                elif row[1] is None and table[idx-1][1] == "사업시행주체":
-                    continue
+                        
+                        for i in range(idx, 0, -1):
+                            if table[i][1] is not None:
+                                # 사업시행주체가 2행 이상으로 분할된 경우, 행 생략
+                                if table[i][1] == "사업시행주체":
+                                    break
+                                else:
+                                    part[0] = row[2]
+                                    part[1] = table[idx+1][2]
+                                    skip_next_flag = True  # 다음 행 건너뛰기 플래그
+                        continue
 
                 # 행 분할 d 유형, 2행 분할 [..."실국과(팀)”...], [...\nOO실\nOO과”...]
                 else:
@@ -120,16 +126,16 @@ def extract_text_to_file(input_path, output_file):
                             if page_num < len(pdf.pages):  # 마지막 페이지가 아닌 경우
                                 next_table = pdf.pages[page_num].extract_table()
                                 if next_table:
-                                    flag = False
+                                    overPaging_flag = False
                                     for row in next_table:
                                         for cell in row:
                                             if cell and re.search(r'\d{2,}-\d{2,}-\d{2,}',cell):
                                                 part[0] = "overPaging"
                                                 part[1] = "overPaging"
                                                 data.append((file_name, part[0], part[1]))
-                                                flag =True
+                                                overPaging_flag =True
                                                 break
-                                        if flag: # 오버페이징을 찾았다면 반복 중단
+                                        if overPaging_flag: # 오버페이징을 찾았다면 반복 중단
                                             break
                             
                             #사업 담당자 키워드를 찾았지만 기존 테이블 유형에서 찾지 못한 경우
@@ -161,7 +167,7 @@ def extract_text_to_file(input_path, output_file):
 
     print(f"데이터가 '{output_file}'에 저장되었습니다.")
 
-input_path = r"C:\Users\고객관리\Desktop\2-1 분할본\2023_세출"
-output_file = r"C:\Users\고객관리\Desktop\2023_세출_담당자_v10.xlsx"
+input_path = r"C:\Users\Minchang Sung\Desktop\test"
+output_file = r"C:\Users\Minchang Sung\Desktop\담당자_test.xlsx"
 
 extract_text_to_file(input_path, output_file)
