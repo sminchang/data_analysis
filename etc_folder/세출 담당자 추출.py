@@ -9,7 +9,7 @@ import pandas as pd #pip install pandas, pip install openpyxl
 def B_C_table_process(table, file_name, data, part):
     skip_next = False
     # table에서 첫 번째 행을 제외한 나머지 행을 순회하면서 조건에 맞는 값을 추출
-    for idx, row in enumerate(table[1:], start=1):  # 첫 번째 행을 제외한 부분
+    for idx, row in enumerate(table[1:], start=1): 
         
         if skip_next:
             skip_next = False
@@ -23,9 +23,10 @@ def B_C_table_process(table, file_name, data, part):
 
         elif (row[2] is not None and 
             (row[1] is None or (row[1] is not None and row[1] != "사업시행주체"))):
-            # 행 분할 b 유형, 2행(1) 분할 [..."실국과(팀)\nOO실,..], [...“OO과"...]
-            # 행 분할 c 유형, 3행 분할 [..."실국과(팀)”...], [...“OO실”...], [...“OO과"...] #컬럼명만 있는 행 생략 후 b 유형과 동일하게 동작
             if row[0] is None:
+                
+                # 행 분할 b 유형, 2행 분할 [..."실국과(팀)\nOO실,..], [...“OO과"...]
+                # 행 분할 c 유형, 3행 분할 [..."실국과(팀)”...], [...“OO실”...], [...“OO과"...] #컬럼명만 있는 행 생략 후 b 유형과 동일하게 동작
                 if ((idx + 1) <= len(table[1:]) and 
                     table[idx+1][1] is None and 
                     table[idx+1][2] is not None):
@@ -37,7 +38,7 @@ def B_C_table_process(table, file_name, data, part):
                 elif row[1] is None and table[idx-1][1] == "사업시행주체":
                     continue
 
-                # 행 분할 d 유형, 2행(2) 분할 [..."실국과(팀)”...], [...\nOO실\nOO과”...]
+                # 행 분할 d 유형, 2행 분할 [..."실국과(팀)”...], [...\nOO실\nOO과”...]
                 else:
                     row_parts = row[2].split('\n')
                     part[0] = row_parts[0] if len(row_parts) > 1 else row[2]
@@ -49,7 +50,7 @@ def B_C_table_process(table, file_name, data, part):
                 part[0] = row_parts[1] if len(row_parts) > 1 else row[2]
                 part[1] = '\n'.join(row_parts[2:]) if len(row_parts) >= 2 else ""
 
-        # row[1]이 "사업시행주체"인 경우, row[2]가 None인 경우
+        # row[1]이 "사업시행주체"인 경우 또는, row[2]가 None인 경우
         else:
             continue
         
@@ -98,6 +99,7 @@ def extract_text_to_file(input_path, output_file):
                                             break
 
                                     elif table and len(table[0]) >= 3 and len(table) >= 2 and table[1][2] is not None and table[1][1] is not None:
+                                        
                                         # 테이블 C 유형, [["사업명","구분","None"...],["oo사업","소관부처","실국과(팀)\nOO실\nOO과"...]...]
                                         if re.search(r'실.*국.*과\s*\(?팀\s*\)?', str(table[1][2])):
                                             B_C_table_process(table,file_name,data,part)
@@ -126,7 +128,7 @@ def extract_text_to_file(input_path, output_file):
                                                 data.append((file_name, part[0], part[1]))
                                                 flag =True
                                                 break
-                                        if flag:
+                                        if flag: # 오버페이징을 찾았다면 반복 중단
                                             break
                             
                             #사업 담당자 키워드를 찾았지만 기존 테이블 유형에서 찾지 못한 경우
@@ -142,7 +144,7 @@ def extract_text_to_file(input_path, output_file):
                         traceback.print_exc()
                         continue
 
-                # 사업 담당자 테이블이 존재하지 않는 경우
+                # 사업 담당자 테이블 자체가 존재하지 않는 경우
                 if (part[0] == "-" and part[1] == "-"):
                     data.append((file_name, part[0], part[1]))
   
