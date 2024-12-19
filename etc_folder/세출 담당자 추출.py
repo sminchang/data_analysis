@@ -35,7 +35,6 @@ def B_C_table_process(table, file_name, data, part):
                         
                         for i in range(idx, 0, -1):
                             if table[i][1] is not None:
-                                print(table[i][1])
                                 # 사업시행주체가 2행 이상으로 분할된 경우, 행 생략
                                 if re.sub(r'\s+', '', table[i][1]) == "사업시행주체":
                                     break
