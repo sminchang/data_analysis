@@ -1,8 +1,6 @@
 # 실국 혹은 과(팀) 내부적으로 개행이 발생하여 이상하게 잘린 단어를 직접 확인-수정해야함
 # 테이블 형식이 깨져서 실국과(팀)이 한 셀에 몰려서 저장된 경우도 찾아서 확인-수정해야함
 
-#247, 6583으로 테스트 중, 테스트 실패 원인 분석하기
-
 import pdfplumber #pip install pdfplumber
 import traceback
 import re
@@ -25,7 +23,8 @@ def B_C_table_process(table, file_name, data, part):
                 continue
 
         elif (row[2] is not None and 
-            (row[1] is None or (row[1] is not None and row[1] != "사업시행주체"))):
+            (row[1] is None or re.sub(r'\s+', '', row[1]) != "사업시행주체")):
+            print(row[1].strip())
             if row[0] is None:
 
                 # 행 분할 b 유형, 2행 분할 [..."실국과(팀)\nOO실,..], [...“OO과"...]
@@ -36,14 +35,16 @@ def B_C_table_process(table, file_name, data, part):
                         
                         for i in range(idx, 0, -1):
                             if table[i][1] is not None:
+                                print(table[i][1])
                                 # 사업시행주체가 2행 이상으로 분할된 경우, 행 생략
-                                if table[i][1] == "사업시행주체":
+                                if re.sub(r'\s+', '', table[i][1]) == "사업시행주체":
                                     break
                                 else:
+                                    print(table[i][1])
                                     part[0] = row[2]
                                     part[1] = table[idx+1][2]
                                     skip_next_flag = True  # 다음 행 건너뛰기 플래그
-                        continue
+                                    break
 
                 # 행 분할 d 유형, 2행 분할 [..."실국과(팀)”...], [...\nOO실\nOO과”...]
                 else:
@@ -167,7 +168,7 @@ def extract_text_to_file(input_path, output_file):
 
     print(f"데이터가 '{output_file}'에 저장되었습니다.")
 
-input_path = r"C:\Users\Minchang Sung\Desktop\test"
-output_file = r"C:\Users\Minchang Sung\Desktop\담당자_test.xlsx"
+input_path = r"C:\Users\고객관리\Desktop\2-1 분할본\2023_세출"
+output_file = r"C:\Users\고객관리\Desktop\2023_세출_담당자_v12.xlsx"
 
 extract_text_to_file(input_path, output_file)
