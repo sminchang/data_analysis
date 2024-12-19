@@ -24,7 +24,6 @@ def B_C_table_process(table, file_name, data, part):
 
         elif (row[2] is not None and 
             (row[1] is None or re.sub(r'\s+', '', row[1]) != "사업시행주체")):
-            print(row[1].strip())
             if row[0] is None:
 
                 # 행 분할 b 유형, 2행 분할 [..."실국과(팀)\nOO실,..], [...“OO과"...]
@@ -39,7 +38,6 @@ def B_C_table_process(table, file_name, data, part):
                                 if re.sub(r'\s+', '', table[i][1]) == "사업시행주체":
                                     break
                                 else:
-                                    print(table[i][1])
                                     part[0] = row[2]
                                     part[1] = table[idx+1][2]
                                     skip_next_flag = True  # 다음 행 건너뛰기 플래그
