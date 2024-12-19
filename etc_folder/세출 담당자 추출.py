@@ -7,6 +7,8 @@ import re
 import os
 import pandas as pd #pip install pandas, pip install openpyxl
 
+
+
 def B_C_table_process(table, file_name, data, part):
     skip_next_flag = False
     # table에서 첫 번째 행을 제외한 나머지 행을 순회하면서 조건에 맞는 값을 추출
@@ -26,40 +28,42 @@ def B_C_table_process(table, file_name, data, part):
             (row[1] is None or re.sub(r'\s+', '', row[1]) != "사업시행주체")):
             if row[0] is None:
 
-                # 행 분할 b 유형, 2행 분할 [..."실국과(팀)\nOO실,..], [...“OO과"...]
-                # 행 분할 c 유형, 3행 분할 [..."실국과(팀)”...], [...“OO실”...], [...“OO과"...] #컬럼명만 있는 행 생략 후 b 유형과 동일하게 동작
-                if ((idx + 1) <= len(table[1:]) and 
-                    table[idx+1][1] is None and 
-                    table[idx+1][2] is not None):
-                        
-                        for i in range(idx, 0, -1):
-                            if table[i][1] is not None:
-                                # 사업시행주체가 2행 이상으로 분할된 경우, 행 생략
-                                if re.sub(r'\s+', '', table[i][1]) == "사업시행주체":
-                                    break
-                                else:
+                for i in range(idx, 0, -1):
+                    
+                    if table[i][1] is not None:
+                        # 사업시행주체가 2행 이상으로 분할된 경우, 행 생략
+                        if re.sub(r'\s+', '', table[i][1]) == "사업시행주체":
+                            break   
+                        else:             
+                            # 행 분할 b 유형, 2행 분할 [..."실국과(팀)\nOO실,..], [...“OO과"...]
+                            # 행 분할 c 유형, 3행 분할 [..."실국과(팀)”...], [...“OO실”...], [...“OO과"...] #컬럼명만 있는 행 생략 후 b 유형과 동일하게 동작
+                            if ((idx + 1) <= len(table[1:]) and 
+                                table[idx+1][1] is None and 
+                                table[idx+1][2] is not None):
                                     part[0] = row[2]
                                     part[1] = table[idx+1][2]
+                                    data.append((file_name, part[0], part[1]))
                                     skip_next_flag = True  # 다음 행 건너뛰기 플래그
                                     break
-
-                # 행 분할 d 유형, 2행 분할 [..."실국과(팀)”...], [...\nOO실\nOO과”...]
-                else:
-                    row_parts = row[2].split('\n')
-                    part[0] = row_parts[0] if len(row_parts) > 1 else row[2]
-                    part[1] = '\n'.join(row_parts[1:]) if len(row_parts) >= 2 else ""
+                            # 행 분할 d 유형, 2행 분할 [..."실국과(팀)”...], [...\nOO실\nOO과”...]
+                            else:
+                                row_parts = row[2].split('\n')
+                                part[0] = row_parts[0] if len(row_parts) > 1 else row[2]
+                                part[1] = '\n'.join(row_parts[1:]) if len(row_parts) >= 2 else ""
+                                data.append((file_name, part[0], part[1]))
+                                break
 
             # 행 분할 a 유형, 1행 통합 [..."실국과(팀)\nOO실\nOO과”...]
             else:
                 row_parts = row[2].split('\n')
                 part[0] = row_parts[1] if len(row_parts) > 1 else row[2]
                 part[1] = '\n'.join(row_parts[2:]) if len(row_parts) >= 2 else ""
+                data.append((file_name, part[0], part[1]))
 
         # row[1]이 "사업시행주체"인 경우 또는, row[2]가 None인 경우
         else:
             continue
         
-        data.append((file_name, part[0], part[1]))
 
 
 def extract_text_to_file(input_path, output_file):
@@ -165,7 +169,7 @@ def extract_text_to_file(input_path, output_file):
 
     print(f"데이터가 '{output_file}'에 저장되었습니다.")
 
-input_path = r"C:\Users\고객관리\Desktop\2-1 분할본\2023_세출"
-output_file = r"C:\Users\고객관리\Desktop\2023_세출_담당자_v12.xlsx"
+input_path= r"C:\Users\고객관리\Desktop\test"
+output_file = r"C:\Users\고객관리\Desktop\test.xlsx"
 
 extract_text_to_file(input_path, output_file)
