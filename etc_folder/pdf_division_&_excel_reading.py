@@ -57,12 +57,12 @@ def pdf_division(input_path, output_path, results):
                                 start = item['시작페이지']
                                 end = item['종료페이지']
                                 if start == end:
-                                    save_pdf_file(output_path, f"{item['CODE']}.pdf", pdf_writer)
+                                    save_pdf_file(output_path, f"{item['CODE']}", pdf_writer)
                                     pdf_writer = PdfWriter()
                                     break
 
                             elif (page_num+1) == item['종료페이지']:
-                                save_pdf_file(output_path, f"{item['CODE']}.pdf", pdf_writer)
+                                save_pdf_file(output_path, f"{item['CODE']}", pdf_writer)
                                 pdf_writer = PdfWriter()
                                 break
 
