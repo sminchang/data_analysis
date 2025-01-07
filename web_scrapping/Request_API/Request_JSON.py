@@ -2,6 +2,8 @@ import requests
 import json
 import pandas as pd #pip install pandas, pip install openpyxl
 
+# data resource: https://data.gg.go.kr/portal/data/dataset/searchDatasetPage.do
+
 # 보통 서버 렌더링 방식을 사용하면 HTML로는 페이지 구조만 만들어두고 실제 데이터는 비동기적으로 JSON 데이터를 요청해서 채운다.
 # 동적 페이지에서 오가는 JSON 데이터를 스크래핑해와야할 때 JSON 요청을 찾아 직접 API 요청을 보내고 응답을 받는 방법은 다음과 같다. 
 # 개발자 도구(F12) -> Network -> filter -> Fetch/XHR -> 페이지 새로고침
