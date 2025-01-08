@@ -45,7 +45,7 @@ Protocol은 도로교통에서의 신호체계처럼 정보통신에서의 신�
 ## 페이지 렌더링 방식 파악
   
   - URL 확인 - Static Page (SSR, CSR)  
-   : 요청할 때마다 URL이 변한다면 보통 Static Page일 가능성이 높다.  
+   : 요청 시 일정 패턴을 가지고 URL이 변한다면 Static Page일 가능성이 높다.  
    다음 페이지를 클릭했을 때 URL 내 Query Param 중 Page(PageIndex)값이 증가한다거나  
    상세 페이지를 클릭했을 때 URL 내 특정 Path Variable 값만 변하는지 확인해본다.  
    URL에서 패턴을 찾았다면 이를 바탕으로 요청을 반복하면 된다.
@@ -60,7 +60,7 @@ Protocol은 도로교통에서의 신호체계처럼 정보통신에서의 신�
    그러면 별도의 HTTP Message가 들어올텐데 이 API 정보를 활용하면 된다.  
 
   - HTML elements 확인 - Dynamic Page (SSR / CSR)   
-   : 개발자 도구(Ctrl+Shift+I)->elements->요소 선택 모드(Ctrl+Shift+C)로 추출하려는 데이터를 확인했을 때   
+   : 대개 개발자 도구(Ctrl+Shift+I)->elements->요소 선택 모드(Ctrl+Shift+C)로 추출하려는 데이터를 확인했을 때   
    값이 채워져있다면 SSR 방식이고, 값이 비워져있다면 CSR 방식이다.  
     >※ SSR + Dynamic Page에서는 서버가 동적 데이터를 모두 채운 html을 클라이언트에게 다시 보내주기 때문에 html element에 값이 채워져 있지만  
     CSR + Dynamic Page에서는 기존 html에 클라이언트가 서버로부터 동적 데이터를 받아 직접 값을 채워넣기 때문에 개발자 도구에서 볼 때 html element가 비워져 보인다.
@@ -80,8 +80,8 @@ Protocol은 도로교통에서의 신호체계처럼 정보통신에서의 신�
   </tr>
   <tr>
     <td>Dynamic Page</td>
-    <td> - 요청 유형: POST Requset<br>  - 추출 대상: WebSite HTML elements or API JSON data</td>
-    <td> - 요청 유형: POST Requset<br>  - 추출 대상: API JSON data</td>
+    <td> - 요청 유형: GET, POST Requset<br>  - 추출 대상: WebSite HTML elements or API JSON data</td>
+    <td> - 요청 유형: GET, POST Requset<br>  - 추출 대상: API JSON data</td>
   </tr>
 </tbody>
 </table>
