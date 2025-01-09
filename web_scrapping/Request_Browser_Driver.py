@@ -7,11 +7,6 @@ import time
 from bs4 import BeautifulSoup #pip install beautifulsoup4
 import pandas as pd #pip install pandas, pip install openpyxl
 
- 
-
-#주요 기능
-#1.웹 드라이버를 활용한 동적 페이지 스크래핑
-#2.추출한 데이터 엑셀 파일에 자동 저장
 
 # 크롬 드라이버 자동 설치 및 실행 설정
 service = Service(ChromeDriverManager().install())
