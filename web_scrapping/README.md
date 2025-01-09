@@ -40,7 +40,7 @@
 
 - **요청 정보 확보** - HTTP Method  
 : HTTP Method에 따라 요청 정보의 위치가 달라지기 때문에 HTTP Method를 파악한다.  
-: 페이지 전환 시 URL이 변한다면 보통 GET Request, 변하지 않는다면 POST Reqeust일 확률이 높다.  
+: 페이지 전환 시 URL이 변한다면 보통 GET Request, 변하지 않는다면 POST Request일 확률이 높다.  
     - GET Request  
    : URL에 페이지 요청 상세 정보를 담아서 보내는 방식이다.
       - Path Variable 예시: https://www.shopping.com/products/```4567```
@@ -59,11 +59,11 @@
     : HTML 전체를 요청-응답받고 거기서 필요한 데이터만 추출한다.
      1. "개발자 도구(Ctrl+Shift+I)->elements->요소 선택 모드(Ctrl+Shift+C)"를 켜고 추출할 영역을 클릭한다.
      2. 개발자 도구 창에 선택한 HTML 위치가 표시되면 "마우스 오른쪽 클릭->copy->copy selector"로 위치를 복사한다.
-     3. Web Page URL + Requst Headers(User-Agent..) + Reqeust Body를 설정하고 요청을 보낸다. (python(Requests)활용)
+     3. Web Page URL + Request Headers(User-Agent..) + Request Body를 설정하고 요청을 보낸다. (python(Requests)활용)
      4. 응답받은 HTML에서 이전에 복사한 HTML 내 추출할 데이터 위치를 활용하여 데이터를 추출한다. (python(Beautifulsoup4)활용)
    - Dynamic Page  
     : Dynamic Data(이하 JSON)만 요청-응답받고 거기서 필요한 데이터를 추출한다.
-     1. 내부 API URL + Requst Headers(Content-Type, User-Agent..) + Reqeust Body를 설정하고 요청을 보낸다. (python(Requests)활용)
+     1. 내부 API URL + Request Headers(Content-Type, User-Agent..) + Request Body를 설정하고 요청을 보낸다. (python(Requests)활용)
      2. 응답받은 JSON을 파싱하고 필요한 데이터만 추출한다.
 
 
