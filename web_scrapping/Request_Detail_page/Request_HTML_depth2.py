@@ -47,9 +47,8 @@ def depth2_extarction(excel_path, output_path):
     finally:
         # 데이터프레임 생성
         df = pd.DataFrame(data)
-
-    # Excel 파일로 저장
-    df.to_excel(output_path, index=False)
+        # Excel 파일로 저장
+        df.to_excel(output_path, index=False)
 
 excel_path = r"C:\Users\User\Desktop\179.국민건강보험법령용어_depth1.xlsx"
 output_path = r"C:\Users\User\Desktop\179.국민건강보험법령용어_depth2.xlsx"
