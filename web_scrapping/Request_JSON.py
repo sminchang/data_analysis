@@ -32,7 +32,7 @@ for page_num in range(1,201): #마지막 페이지 200까지
 
     try:
         # POST 요청 전송
-        response = requests.post(API_url, headers=request_header, data=request_body)
+        response = requests.post(API_url, headers=request_header, data=request_body) #content-type이 form data면 data= / json이면 json=
 
         # 응답 상태 코드 확인(오류 코드일 경우 예외 발생)
         response.raise_for_status()
