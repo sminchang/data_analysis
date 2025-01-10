@@ -8,7 +8,7 @@ data = []
 API_url = "https://data.gg.go.kr/portal/data/dataset/searchDataset.do"
 
 # 요청 헤더 데이터
-request_header = {
+request_headers = {
     "Content-Type": "application/x-www-form-urlencoded",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",  #User-Agent 추가
     # "Cookie" : # 필요한 경우 쿠키 값 추가(로그인 정보 등등)
@@ -32,7 +32,7 @@ for page_num in range(1,201): #마지막 페이지 200까지
 
     try:
         # POST 요청 전송
-        response = requests.post(API_url, headers=request_header, data=request_body) #content-type이 form data면 data= / json이면 json=
+        response = requests.post(API_url, headers=request_headers, data=request_body) #content-type이 form data면 data= / json이면 json=
 
         # 응답 상태 코드 확인(오류 코드일 경우 예외 발생)
         response.raise_for_status()
