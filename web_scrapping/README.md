@@ -11,15 +11,17 @@
     - Content-Type: 전송할 body의 데이터 형식 정보
     - User-Agent: 요청자의 OS ~ Browser 정보
   - Body:
-    - form data(Contetnt-Type: x-www-form-urlencoded)
-    - JSON(Contetnt-Type: application/json)
+    - form data(Contetnt-Type: x-www-form-urlencoded)  
+      ```or```  
+      JSON(Contetnt-Type: application/json)
 
 - Response format
   - Start Line: Http Version / State Code / Reason Phrase
   - Header
   - Body
-    - JSON(Content-Type: application/json)
-    - HTML(Content-Type: text/html)
+    - JSON(Content-Type: application/json)  
+      ```or```  
+      HTML(Content-Type: text/html)
 
 **Web Page Type**
 - Static Page: 모든 웹 페이지 구성 요소를 HTML에 미리 채워서 받는 방식
