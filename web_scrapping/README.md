@@ -17,7 +17,7 @@
 
 - Response format
   - Start Line: Http Version / State Code / Reason Phrase
-  - Header
+  - Headers
   - Body
     - JSON(Content-Type: application/json)  
       ```or```  
@@ -72,10 +72,11 @@
 
 # 번외
 - 로그인 페이지에 접근해야하는 경우  
-: 브라우저에 로그인 정보를 저장해두고 브라우저 드라이버(Python(selenium))를 통해 페이지를 로딩하고 가져오는 방식을 취할 수 있다.
+: 브라우저에 로그인 정보를 저장해두고 브라우저 드라이버(Python(selenium))를 통해 페이지를 로딩하고 가져오는 방식을 취할 수 있다.   
+: 로그인이 세션 방식일 경우 python(requests)의 session()을 사용하여 간단하게 처리할 수도 있을 것 같다. 
 
 - 실시간 서비스를 하는 페이지인 경우  
-: 웹소켓 등을 사용하여 내부 데이터는 다른 프로토콜로 통신할 수 있다. 이 경우 접근 방식을 달리해야 할 것으로 보인다.
+: 웹소켓 등을 사용하여 내부 데이터는 다른 프로토콜로 통신할 수 있다. "개발자 도구(Ctrl+Shift+I)->Network->WS" 등을 확인하여 분석해볼 수 있다.
 
 - 개발자 도구에서 html element 값이 안보이는 경우  
 : SSR + Dynamic Page에서는 서버가 동적 데이터를 모두 채운 html을 클라이언트에게 다시 보내주기 때문에 html element에 값이 채워져 있지만 CSR + Dynamic Page에서는 기존 html에 클라이언트가 서버로부터 동적 데이터를 받아 직접 값을 채워넣기 때문에 개발자 도구에서 볼 때 html element가 비워져 보인다.
