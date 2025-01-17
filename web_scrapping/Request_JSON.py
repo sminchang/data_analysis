@@ -56,7 +56,7 @@ for page_num in range(1,201): #마지막 페이지 200까지
 
             # 추출한 텍스트 내 html 요소가 포함된 경우 (import html, BeautifulSoup)
             # html_text = html.unescape(infExp) # html 태그가 html 엔티티로 인코딩된 경우, 디코딩
-            # soup = BeautifulSoup(infExp, 'html.parser') #html 태그 파싱
+            # soup = BeautifulSoup(html_text, 'html.parser') #html 태그 파싱
             # infExp = soup.get_text()
 
             row_data = {
