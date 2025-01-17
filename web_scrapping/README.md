@@ -59,10 +59,11 @@
 : 페이지 전환 시 "개발자 도구(Ctrl+Shift+I)->Network->Fetch/XHR"에 API가 들어오지 않는다면 Static Page, 들어온다면 Dynamic Page일 확률이 높다.  
    - Staitc Page  
     : HTML 전체를 요청-응답받고 거기서 필요한 데이터만 추출한다.
-     1. "개발자 도구(Ctrl+Shift+I)->elements->요소 선택 모드(Ctrl+Shift+C)"를 켜고 추출할 영역을 클릭한다.
+     1. "크롬->개발자 도구(Ctrl+Shift+I)->elements->요소 선택 모드(Ctrl+Shift+C)"를 켜고 추출할 영역을 클릭한다.
      2. 개발자 도구 창에 선택한 HTML 위치가 표시되면 "마우스 오른쪽 클릭->copy->copy selector"로 위치를 복사한다.
-     3. Web Page URL + Request Headers(User-Agent..) + Request Body를 설정하고 요청을 보낸다. (python(Requests)활용)
-     4. 응답받은 HTML에서 이전에 복사한 HTML 내 추출할 데이터 위치를 활용하여 데이터를 추출한다. (python(Beautifulsoup4)활용)
+        ※ 크롬의 copy selector(css selector)기능이 부정확할 때가 있다. 추출이 안될 경우 경로를 직접 확인해봐야한다.
+     4. Web Page URL + Request Headers(User-Agent..) + Request Body를 설정하고 요청을 보낸다. (python(Requests)활용)
+     5. 응답받은 HTML에서 이전에 복사한 HTML 내 추출할 데이터 위치를 활용하여 데이터를 추출한다. (python(Beautifulsoup4)활용)
    - Dynamic Page  
     : Dynamic Data(이하 JSON)만 요청-응답받고 거기서 필요한 데이터를 추출한다.
      1. 내부 API URL + Request Headers(Content-Type, User-Agent..) + Request Body를 설정하고 요청을 보낸다. (python(Requests)활용)
