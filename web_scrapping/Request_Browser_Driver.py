@@ -1,62 +1,73 @@
-import requests #pip install requests
-import certifi
-from selenium import webdriver #pip install selenium, pip install webdriver-manager
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver import ActionChains
+from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.service import Service as ChromeService
+
 import time
-from bs4 import BeautifulSoup #pip install beautifulsoup4
-import pandas as pd #pip install pandas, pip install openpyxl
+import pandas as pd
+import re
+import os
+
+# find_element()로 요소 찾기
+# get_attribute()로 속성값 찾기
 
 
-# 크롬 드라이버 자동 설치 및 실행 설정
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service)
+# 드라이버 설정 (webdriver_manager 사용)
+service = ChromeService(executable_path=ChromeDriverManager().install()) # 크롬 드라이버 다운로드
+options = webdriver.ChromeOptions()
+# options.add_argument('--headless=new')  # 브라우저 화면 미출력 설정
+options.add_argument('--no-sandbox') # sandbox 모드에서 실행되지 않도록 설정
+options.add_argument('--disable-dev-shm-usage') # /dev/shm 메모리 사용을 비활성화하여 크롬 안정성 향상
+driver = webdriver.Chrome(service=service, options=options) # 드라이버로 크롬 브라우저 할당
 
-#URL 및 헤더 설정
-headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
-base_url = 'https://www.codil.or.kr/viewSubTchStd.do?sType=type1All&sType2=&sortCase=ASC&pageIndex=' #뒤에 페이징 번호만 넣어주면 된다.
+# 페이지 요청
+url = "https://www.law.go.kr/lsTrmSc.do?menuId=13&subMenuId=65&query=#AJAX"
+driver.get(url)
 
-#데이터 저장할 리스트 생성
+# 데이터를 저장할 리스트
 data = []
 
-#페이지 번호 순회(1~68)
-for page_num in range(1,69) :
+# 테이블의 행 수 확인
+rows = WebDriverWait(driver, 10).until(
+    EC.presence_of_all_elements_located((By.XPATH, '//*[@id="lelistwrapLeft"]/ul/li')) # DOM에 로딩될 때까지 대기(최대 10초 설정)
+)
 
-    url = f'{base_url}{page_num}'
-    driver.get(url)
-    time.sleep(5) #페이지 로딩 중 락킹 설정
+# 사이트 내 모든 페이지 순회
+while True:
+    # 한 페이지 내 모든 목록 순회
+    for i in range(0, len(rows)+1):
+        try:
+            title_element = driver.find_element(By.XPATH, f'//*[@id="click{i}"]') # HTML 요소 추출
+            title = title_element.get_attribute('title') # 태그 속성 추출
+            title_element.click() #클릭 이벤트 적용
 
-    #페이지 요청 및 파싱
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
+            #클릭 이벤트로 생성된 팝업창 로딩까지 대기
+            content = WebDriverWait(driver, 10).until(
+                EC.visibility_of_element_located((By.XPATH, f'//*[@id="contentBody"]/dl/dd[1]'))
+            ).text 
 
-    #목록 불러오기
-    limit_list = soup.select('#content > div > div.content > div.tb_group > div.srchTable > table > tbody > tr')
+            #connect와 같은 팝업창이기에 별도 대기없이 추출출
+            ref = driver.find_element(By.XPATH, f'//*[@id="contentBody"]/dl/dd[2]').text
+            
+            print(f"제목: {title}\n===========================\n")
+            print(f"내용: {content}\n===========================\n")
+            print(f"참조: {ref}\n===========================\n")
 
-    for tr in limit_list :
-        title = tr.select_one('td.title > a')
-        sourceInfo = tr.select_one('td.title > p')
-        place = tr.select_one('td:nth-child(4) > p:nth-child(1)')
-        #print(f"Original Text: {repr(place.text)}") #&nbsp;로 인한 문자열 형식 오류 확인
-        infoType = tr.select_one('td:nth-child(4) > p:nth-child(2) > span')
+        except:
+            continue
 
-        # 데이터를 딕셔너리로 저장
-        row_data = {
-            '제목': title.text if title else '',
-            '링크': f'https://www.codil.or.kr/{title.get("href")}' if title else '',
-            '출처정보': sourceInfo.text.replace('출처정보 : ', '').strip() if sourceInfo else '',
-            '발행처': place.text.replace('발 행 처\xa0\xa0:', '').strip() if place else '',
-            '정보유형': infoType.text if infoType else ''
-        }
-
-        # 데이터 리스트에 추가
-        data.append(row_data)
-
+    # 다음 페이지 버튼 클릭
+    try:
+        next_page = driver.find_element(By.XPATH, f'//*[@id="listDiv"]/div[3]/a[1]')
+        next_page.click()
+    except:
+        break
 
 driver.quit()
-
-
-# 데이터프레임 생성
-df = pd.DataFrame(data)
-
-# Excel 파일로 저장
-df.to_excel('codil_data.xlsx', index=False)
