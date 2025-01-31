@@ -43,16 +43,16 @@ for page_num in range(1,201): #마지막 페이지 200까지
         page = response_data["page"]
 
         for item in response_data["data"]:
-            seq = item.get("seq", "")
-            infId = item.get("infId", "")
-            infNm = item.get("infNm", "")
-            infExp = item.get("infExp", "")
-            regDttm = item.get("regDttm", "")
-            updDttm = item.get("updDttm", "")
-            topCateId = item.get("topCateId", "")
-            topCateNm = item.get("topCateNm", "")
-            topCateId2 = item.get("topCateId2", "")
-            topCateNm2 = item.get("topCateNm2", "")
+            seq = item.get("seq", "") or ""
+            infId = item.get("infId", "") or ""
+            infNm = item.get("infNm", "") or ""
+            infExp = item.get("infExp", "") or ""
+            regDttm = item.get("regDttm", "") or ""
+            updDttm = item.get("updDttm", "") or ""
+            topCateId = item.get("topCateId", "") or ""
+            topCateNm = item.get("topCateNm", "") or ""
+            topCateId2 = item.get("topCateId2", "") or ""
+            topCateNm2 = item.get("topCateNm2", "") or ""
 
             # 추출한 텍스트 내 html 요소가 포함된 경우 (import html, BeautifulSoup)
             # html_text = html.unescape(infExp) # html 태그가 html 엔티티로 인코딩된 경우, 디코딩
