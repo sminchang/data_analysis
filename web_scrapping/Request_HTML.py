@@ -15,7 +15,7 @@ for page_num in range(1,69) :
 
     url = f'{base_url}{page_num}'
 
-    response = requests.get(url, headers=headers, verify=False) #SSL 검증 오류로 임시 비활성화 상태
+    response = requests.get(url,headers=headers) # verify=False -> SSL 검증 오류 시 verify 비활성화
     soup = BeautifulSoup(response.text, 'html.parser')
 
     #목록 불러오기
