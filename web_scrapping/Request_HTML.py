@@ -30,12 +30,11 @@ for page_num in range(1,69) :
         infoType = tr.select_one('td:nth-child(4) > p:nth-child(2) > span')
 
         row_data = {
-
-            '제목': title.text,
-            '링크': f'https://www.codil.or.kr/{title.get('href')}',
-            '출처정보': sourceInfo.text.replace('출처정보 : ', '').strip(),
-            '발행처': place.text.replace('발 행 처\xa0\xa0:','').strip(),
-            '정보유형': infoType.text
+            '제목': title.text if title else '',
+            '링크': f'https://www.codil.or.kr/{title.get('href')}' if title else '',
+            '출처정보': sourceInfo.text.replace('출처정보 : ', '').strip() if sourceInfo else '',
+            '발행처': place.text.replace('발 행 처\xa0\xa0:','').strip() if place else '',
+            '정보유형': infoType.text if infoType else ''
         }
 
         # 데이터 리스트에 추가
