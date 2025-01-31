@@ -16,6 +16,7 @@ for page_num in range(1,69) :
     url = f'{base_url}{page_num}'
 
     response = requests.get(url,headers=headers) # verify=False -> SSL 검증 오류 시 verify 비활성화
+    # response.encoding ='euc-kr' or 'utf-8' or 'cp949' 한글 인코딩 문제 발생 시 다음 인코딩 방식들을 시도해볼 것
     soup = BeautifulSoup(response.text, 'html.parser')
 
     #목록 불러오기
