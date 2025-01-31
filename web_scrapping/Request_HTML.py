@@ -19,7 +19,7 @@ for page_num in range(1,69) :
     # response.encoding ='euc-kr' or 'utf-8' or 'cp949' 한글 인코딩 문제 발생 시 다음 인코딩 방식들을 시도해볼 것
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    #목록 불러오기
+    #목록 불러오기, 브라우저 자동 생성 경로가 실제 경로와 다른 경우 llm 활용하여 전체 페이지에서 경로 추출할 것
     limit_list = soup.select('#content > div > div.content > div.tb_group > div.srchTable > table > tbody > tr')
 
     for tr in limit_list :
