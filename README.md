@@ -22,4 +22,5 @@
    1-2-1. .\.venv\Scripts\activate.bat (윈도우 cmd 기준 가상 환경 활성화, 실행 환경에 따라 명령어가 다를 수 있다.)
    1-2-2. .venv\Scripts\activate (1-2-1이 안될 경우)
    1-3. pip install 라이브러리명 입력 (venv를 통해 해당 프로젝트 폴더에서만 라이브러리가 설치되도록 설정)
-2. 가상 환경 비활성화: deactivate(실행 중인 (.venv)cmd 창에 명령어 입력)
+2. VS code 우측 하단에 interpreter가 '.venv':venv로 안되어 있다면 클릭해서 Create Virtual Environment으로 venv로 설정
+3. 가상 환경 비활성화: deactivate(실행 중인 (.venv)cmd 창에 명령어 입력)
