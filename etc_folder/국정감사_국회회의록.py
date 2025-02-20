@@ -7,7 +7,7 @@ import re
 # https://likms.assembly.go.kr/record/mhs-10-040-0040.do에 fileId과 conferNum을 쿼리 파람으로 넣어서 다운로드 링크를 만들 수 있다.
 # 브라우저 도구로 분석해보면 서버에서는 get요청으로 다운로드를 제공하지 않으나, 해당 링크에 응답한다.
 
-# batch 용도, 기본 세팅값 (매년 10초~11월중순까지 Upset)
+# batch 용도, 기본 세팅값 (매년 10초~11월중순까지 Upsert)
 today_year = datetime.date.today().year
 today_daeNum = (today_year - 1988) // 4 + 13 # 1988년 13대를 기준점으로 현재 연도의 제안대수 계산 (1988년부터 4년 주기가 확보되었기 때문)
 
