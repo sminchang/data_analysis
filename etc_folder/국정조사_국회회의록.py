@@ -7,9 +7,9 @@ import re
 # https://likms.assembly.go.kr/record/mhs-10-040-0040.do에 fileId과 conferNum을 쿼리 파람으로 넣어서 다운로드 링크를 만들 수 있다.
 # 브라우저 도구로 분석해보면 서버에서는 get요청으로 다운로드를 제공하지 않으나, 해당 링크에 응답한다.
 
-# batch 용도, 기본 세팅값 (매년 10초~11월중순까지 Upset)
+# batch 용도, 기본 세팅값 (수시로 Upset)
 today_year = datetime.date.today().year
-today_daeNum = (today_year - 1988) // 4 + 13 # 1988년 13대를 기준점으로 현재 연도의 제안대수 계산 (1988년부터 4년 주기가 확보되었기 때문)
+today_daeNum = (today_year - 1992) // 4 + 14 # 1992년 14대를 기준점으로 현재 연도의 제안대수 계산 (1992년부터 매년 국정조사 실시)
 
 # 엑셀 용도, 전역 리스트
 data = []
@@ -22,11 +22,11 @@ request_headers = {
 
 
 def commCode_request():
-    """현재 연도의 제안대수 내 국정감사가 이루어진 상임위원회 코드 정보 수집"""
+    """현재 연도의 제안대수 내 국정조사가 이루어진 특별위원회 코드 정보 수집"""
     try:
         commCode_url = "https://likms.assembly.go.kr/record/mhs-40-010-0011.do"
         commCode_request_body = {
-                "classCode": 5,
+                "classCode": 6, #국정조사 카테고리 코드
                 "subClassCode": "",
                 "commName": "",
                 "daeNum": today_daeNum,
@@ -46,9 +46,9 @@ def commCode_request():
         commCode_response.raise_for_status() # 응답 상태 코드 확인(오류 코드일 경우 예외 발생)
         commCode_response_data = commCode_response.json()
 
-        # 해당 대수에 국정감사가 없는 경우, 예외처리
+        # 해당 대수에 국정조사가 없는 경우, 예외처리
         if "beforeClassName" in commCode_response_data["paramsList"]:
-            raise ValueError(f"{today_daeNum}대에 국정감사 없음")
+            raise ValueError(f"{today_daeNum}대에 국정조사 없음")
 
         commCode_list = [item.get("commCode", "") or "" for item in commCode_response_data["comitList"]]
         commName_list = [item.get("commName", "") or "" for item in commCode_response_data["comitList"]]
@@ -86,12 +86,12 @@ def baGubun_request(conferNum):
 
 
 def conferNum_request(commCode_list, commName_list):
-    """해당 연도의 모든 상임위원회별 post 요청하여 모든 국정감사 회의록 정보 수집"""
-    conferNum_url = "https://likms.assembly.go.kr/record/mhs-40-010-0014.do"
+    """해당 연도의 모든 특별위원회별 post 요청하여 모든 국정조사 회의록 정보 수집"""
+    conferNum_url = "https://likms.assembly.go.kr/record/mhs-40-010-0012.do"
 
     for i in range(len(commCode_list)):
         conferNum_request_body = {
-            "classCode": 5, #국정감사 카테고리 코드
+            "classCode": 6, #국정조사 카테고리 코드
             "subClassCode": "",
             "commName": "",
             "daeNum": today_daeNum,
@@ -113,9 +113,8 @@ def conferNum_request(commCode_list, commName_list):
             conferNum_response.raise_for_status()
             conferNum_response_data = conferNum_response.json()
 
-            for item in conferNum_response_data["auditList"]:
+            for item in conferNum_response_data["degreeList"]:
                 conferNum = item.get("conferNum", "") or ""
-                subName = item.get("subName", "") or ""
                 daeDisp =item.get("daeDisp", "") or ""
                 sesNum =item.get("sesNum", "") or ""
                 pdfFileId = item.get("pdfFileId", "") or ""
@@ -135,7 +134,6 @@ def conferNum_request(commCode_list, commName_list):
                     "회수": sesNum,
                     "상임위원회명": commName_list[i],
                     "회의날짜": f"{confDate1}-{confDate2}-{confDate3}",
-                    "피감사기관명": subName,
                     "pdf파일번호": pdfFileId,
                     "hwp파일번호": hwpFileId,
                     "서면질의_파일번호": baGubunFileId,
@@ -152,7 +150,7 @@ def conferNum_request(commCode_list, commName_list):
 
 if __name__ == "__main__":
     
-
+    
     # batch 자동 수집
     # try:
     #     commCode_list, commName_list = commCode_request()
@@ -161,42 +159,18 @@ if __name__ == "__main__":
     #     print(e)
     
     # 과거 데이터 수집, 최초 수집 후 주석 처리
-    for i in range(1988,2025):
+    for i in range(1992,2025):
         today_year = i
-        today_daeNum = (today_year - 1988) // 4 + 13
+        today_daeNum = (today_year - 1992) // 4 + 14
         commCode_list, commName_list = commCode_request()
         conferNum_request(commCode_list, commName_list)
-    for i in range(1957,1958):
-        today_year = i
-        today_daeNum = 3
-        commCode_list, commName_list = commCode_request()
-        conferNum_request(commCode_list, commName_list)
-    for i in range(1958,1960):
+    for i in range(1958,1961):  
         today_year = i
         today_daeNum = 4
         commCode_list, commName_list = commCode_request()
         conferNum_request(commCode_list, commName_list)
-    for i in range(1960,1961):
-        today_year = i
-        today_daeNum = 5
-        commCode_list, commName_list = commCode_request()
-        conferNum_request(commCode_list, commName_list)
-    for i in range(1964,1967):
-        today_year = i
-        today_daeNum = 6
-        commCode_list, commName_list = commCode_request()
-        conferNum_request(commCode_list, commName_list)
-    for i in range(1967,1971):
-        today_year = i
-        today_daeNum = 7
-        commCode_list, commName_list = commCode_request()
-        conferNum_request(commCode_list, commName_list)
-    for i in range(1971,1973):
-        today_year = i
-        today_daeNum = 8
-        commCode_list, commName_list = commCode_request()
-        conferNum_request(commCode_list, commName_list)
+
 
     # 엑셀 저장
     df = pd.DataFrame(data)
-    df.to_excel('국정감사_국회회의록.xlsx', index=False)
+    df.to_excel('국정조사_국회회의록.xlsx', index=False)
