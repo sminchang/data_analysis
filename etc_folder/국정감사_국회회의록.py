@@ -82,7 +82,7 @@ def conferNum_request(commCode_list, commName_list):
             "subClassCode": "",
             "commName": "",
             "daeNum": today_daeNum,
-            "commCode": commCode_list[i], #상임위원회 코드
+            "commCode": commCode_list[i], #상임위원회 코드, 고유하지 않아 수집하지 않음.
             "sesNum": "",
             "conferNum": "",
             "confDate": "",
@@ -102,7 +102,6 @@ def conferNum_request(commCode_list, commName_list):
 
             for item in conferNum_response_data["auditList"]:
                 conferNum = item.get("conferNum", "") or ""
-                commCode = item.get("commCode", "") or ""
                 subName = item.get("subName", "") or ""
                 daeDisp =item.get("daeDisp", "") or ""
                 pdfFileId = item.get("pdfFileId", "") or ""
@@ -119,7 +118,6 @@ def conferNum_request(commCode_list, commName_list):
                 row_data = {
                     "회의번호": conferNum,
                     "제안대수": daeDisp,
-                    "상임위원회코드": commCode,
                     "상임위원회명": commName_list[i],
                     "회의날짜": f"{confDate1}-{confDate2}-{confDate3}",
                     "피감사기관명": subName,
