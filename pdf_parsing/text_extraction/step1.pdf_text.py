@@ -23,10 +23,25 @@ def pdf_to_text(input_path, output_file_path):
             text = ""
 
             for page in pdf.pages:
+                
+                # 단 나누기가 된 페이지 추출 시
+                # width = page.width
+                # height = page.height
+                # # 왼쪽 부분 단 추출
+                # left_bbox = (0, 0, width / 2, height)
+                # left_cropped = page.crop(bbox=left_bbox)
+                # left_text = left_cropped.extract_text() + "\n"
+                # # 오른쪽 부분 단 추출
+                # right_bbox = (width / 2, 0, width, height)
+                # right_cropped = page.crop(bbox=right_bbox)
+                # right_text = right_cropped.extract_text() + "\n"
+
                 text += page.extract_text() + "\n"  # 각 페이지의 텍스트를 추가하고 줄바꿈
 
         with open(output_file_path, 'w', encoding='utf-8') as file:
             file.write(text)
+            # file.write(left_text)
+            # file.write(right_text)
 
         print(f"텍스트가 '{output_file_path}'에 저장되었습니다.")
 
