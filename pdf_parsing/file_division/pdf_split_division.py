@@ -1,5 +1,6 @@
 import os
 from PyPDF2 import PdfReader, PdfWriter
+import copy
 
 def split_pdf(input_pdf, output_dir, ranges):
     if not os.path.exists(output_dir):
@@ -18,24 +19,21 @@ def split_pdf(input_pdf, output_dir, ranges):
 
             if is_split:
                 # 페이지를 반으로 나누는 로직 (모아찍기된 페이지 처리)
+
+                left_page = copy.deepcopy(page)
+                right_page = copy.deepcopy(page)
                 page_width = page.mediabox.width
                 page_height = page.mediabox.height
 
                 # 왼쪽 절반 페이지
-                left_page = PdfWriter()
-                left_page.add_page(page)
-                left_page_obj = left_page.get_page(0)
-                left_page_obj.mediabox.upper_right = (page_width / 2, page_height)
-                left_page_obj.cropbox.upper_right = (page_width / 2, page_height)
-                output_pdf.add_page(left_page_obj)
+                left_page.mediabox.upper_right = (page_width / 2, page_height)
+                left_page.cropbox.upper_right = (page_width / 2, page_height)
+                output_pdf.add_page(left_page)
 
                 # 오른쪽 절반 페이지
-                right_page = PdfWriter()
-                right_page.add_page(page)
-                right_page_obj = right_page.get_page(0)
-                right_page_obj.mediabox.lower_left = (page_width / 2, 0)
-                right_page_obj.cropbox.lower_left = (page_width / 2, 0)
-                output_pdf.add_page(right_page_obj)
+                right_page.mediabox.lower_left = (page_width / 2, 0)
+                right_page.cropbox.lower_left = (page_width / 2, 0)
+                output_pdf.add_page(right_page)
 
             else:
                 # 일반적인 페이지 추가
@@ -47,9 +45,6 @@ def split_pdf(input_pdf, output_dir, ranges):
         print(f"Saved: {filename}")
 
 if __name__ == "__main__":
-    input_pdf = r"C:\Users\User\Desktop\2025 본예산안 사업설명서.pdf" # 실제 PDF 파일 이름으로 변경
-    output_dir = r"C:\Users\User\Desktop\test"  # 출력 디렉토리
-
     ranges = [
         (1, 255, False),
         (256, 282, True),
@@ -103,4 +98,6 @@ if __name__ == "__main__":
         (15485, 15531, False)
     ]
     
+    input_pdf = r"C:\Users\yunis\OneDrive - 씨지인사이드\task\소장님 지시\경기도_지방재정\2025 본예산안 사업설명서.pdf" # 실제 PDF 파일 이름으로 변경
+    output_dir = r"C:\Users\yunis\바탕 화면\사업설명서_원본"  # 출력 디렉토리
     split_pdf(input_pdf, output_dir, ranges)
