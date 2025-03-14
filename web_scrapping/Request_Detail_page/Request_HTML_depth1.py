@@ -29,7 +29,7 @@ def depth1_extarction(base_url, output_path):
             dep2_match = re.search(r"seqWord=(\d+)", dep2_tag_value)
             seqWord = dep2_match.group(1)
 
-            # 행 생성성
+            # 행 생성
             row_data = {
                 "연번": seq.text,
                 "seqWord": seqWord,
