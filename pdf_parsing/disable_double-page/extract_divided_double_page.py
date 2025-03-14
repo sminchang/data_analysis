@@ -154,11 +154,11 @@ if __name__ == "__main__":
                     for table in tables:
                         for row in table:
                             excel_data.append([f"{file_name} (페이지 {page_num+1})"] + row)
-                            excel_data.append([])  # 테이블 간 공백 행 추가
+                        excel_data.append([])  # 테이블 간 공백 행 추가
                     
                 # 텍스트 저장
                 with open(f"{txt_output_path}{file_name}.txt", 'w', encoding='utf-8') as f:
-                    f.write('\n'.join(texts))
+                    f.write(texts)
                 print(f"{file_name} 텍스트가 '{txt_output_path}'로 저장되었습니다.")
 
                 # 테이블 저장
