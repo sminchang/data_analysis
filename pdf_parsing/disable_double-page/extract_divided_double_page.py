@@ -39,7 +39,7 @@ def extract_tables_by_divided_double_page(page):
                     c['top'] >= bbox[1] and c['bottom'] <= bbox[3]]
     
     if not visible_chars:
-        return ""
+        return []
     
     # 문자 좌표 범위로 페이지 유형 판단
     x_coords = [c['x0'] for c in visible_chars]
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     excel_output_path = 'extracted_tables.xlsx'
     txt_output_path = 'extracted_texts.txt'
 
-    excel_data = []
+    
 
     for file_name in os.listdir(input_path):
         file_path = os.path.join(input_path, file_name)
@@ -144,10 +144,12 @@ if __name__ == "__main__":
         
         try:
             with pdfplumber.open(file_path) as pdf:
+                texts = ""
+                excel_data = []
                 for page_num, page in enumerate(pdf.pages):
 
                     # 텍스트 추출
-                    texts = extract_text_by_divided_double_page(page)
+                    texts += extract_text_by_divided_double_page(page)
 
                     # 테이블 추출
                     tables = extract_tables_by_divided_double_page(page)
