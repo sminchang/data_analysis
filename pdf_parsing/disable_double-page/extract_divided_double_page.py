@@ -10,21 +10,20 @@ def has_text_layer_mismatch(page):
     x좌표가 페이지 너비를 초과하면 불일치로 판단"""
     # 모든 문자 가져오기
     chars = page.chars
-    
+    bbox = page.bbox
+
     if not chars:
         return False  # 문자가 없으면 불일치 확인 불가
     
-    # 페이지 너비
-    width = page.width
-    
-    # 문자 좌표 확인
-    for char in chars:
-        # x좌표가 페이지 너비를 초과하는 경우 불일치
-        if char['x0'] > width or char['x1'] > width:
-            return True
+    visible_chars = [c for c in chars if 
+                    c['x0'] >= bbox[0] and c['x1'] <= bbox[2] and 
+                    c['top'] >= bbox[1] and c['bottom'] <= bbox[3]]
+    if len(chars) != len(visible_chars):
+        return True
     
     # 불일치 없음
     return False
+
 
 def extract_tables_by_divided_double_page(page):
     """좌표값 범위를 기준으로 분할 위치(왼쪽,오른쪽)를 식별하고 해당 테이블만 추출"""
@@ -68,7 +67,6 @@ def extract_tables_by_divided_double_page(page):
                 filtering_tables.append(table)
 
     return filtering_tables
-
 
 
 def extract_text_by_divided_double_page(page):
