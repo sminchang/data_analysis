@@ -59,7 +59,6 @@ def extract_tables_by_divided_double_page(page):
         if table_idx < len(table_bboxes):
             x0, y0, x1, y1 = table_bboxes[table_idx].bbox
             table_side = "왼쪽" if x0 < width  else "오른쪽"
-            print(x0)
             # 페이지 유형과 테이블 위치가 일치하는 경우만 추출
             if page_side == table_side:
                 filtering_tables.append(table)
