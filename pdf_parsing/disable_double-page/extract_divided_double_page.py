@@ -91,7 +91,7 @@ def extract_text_by_divided_double_page(page):
     for char in visible_chars:
         cropped_visible_chars.append(char)
     
-    # 줄 단위 처리 (기존 방식과 유사)
+    # 줄 단위 처리
     filtered_chars = cropped_visible_chars
     filtered_chars.sort(key=lambda c: (c['top'], c['x0']))
     
