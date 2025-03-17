@@ -24,7 +24,6 @@ def has_text_layer_mismatch(page):
     # 불일치 없음
     return False
 
-
 def extract_tables_by_divided_double_page(page):
     """좌표값 범위를 기준으로 분할 위치(왼쪽,오른쪽)를 식별하고 해당 테이블만 추출"""
     
@@ -44,8 +43,7 @@ def extract_tables_by_divided_double_page(page):
     x_coords = [c['x0'] for c in visible_chars]
     min_x = min(x_coords)
     max_x = max(x_coords)
-    
-    if min_x > width/2:
+    if min_x > width:
         page_side = "오른쪽"
     elif max_x < width:
         page_side = "왼쪽"
@@ -60,13 +58,14 @@ def extract_tables_by_divided_double_page(page):
     for table_idx, table in enumerate(tables):
         if table_idx < len(table_bboxes):
             x0, y0, x1, y1 = table_bboxes[table_idx].bbox
-            table_side = "왼쪽" if x0 < width/2 else "오른쪽"
-            
+            table_side = "왼쪽" if x0 < width  else "오른쪽"
+            print(x0)
             # 페이지 유형과 테이블 위치가 일치하는 경우만 추출
             if page_side == table_side:
                 filtering_tables.append(table)
 
     return filtering_tables
+
 
 
 def extract_text_by_divided_double_page(page):
@@ -126,7 +125,7 @@ def extract_text_by_divided_double_page(page):
 
 #사용 예
 if __name__ == "__main__":
-    input_path = r"C:\Users\yunis\바탕 화면\test1"
+    input_path = r"C:\Users\yunis\바탕 화면\test"
     excel_output_path = 'extracted_tables.xlsx'
     txt_output_path = 'extracted_texts.txt'
 
