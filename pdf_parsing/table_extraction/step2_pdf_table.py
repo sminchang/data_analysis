@@ -8,9 +8,11 @@ import util.extract_divided_double_page as eddp
 # step3. 테이블 구조에 대한 파악을 토대로, 금액값에 대한 검증을 포함한 최종 추출을 수행한다.
 
 
-def convert_row(row):
+def convert_row_to_int(row, log):
     """금액값 문자열->정수형으로 변환"""
     refer_cell_flag = False # *특수문자 예외 중복처리 방지
+    convert_row = []
+    convert_row.append(row[0]) # 구분
 
     for cell in row[1:9]:
                     
@@ -38,17 +40,18 @@ def convert_row(row):
         # 금액: 문자열->정수형 변환 
         cell = int(cell)
         convert_row.append(cell)
+        
+    convert_row.append(row[9]) # '비고'
 
     return convert_row
 
 
-def find_and_extarct_table(tables, file_name, excel_data):
+def find_and_extract_table(tables, file_name, excel_data):
     """추출할 테이블 식별 및 데이터 추출"""
     for table in tables:
         if (re.match(r"구\s*분", table[0][0]) and re.match(r"총\s*사\s*업\s*비|총\s*수\s*입", table[0][1])):
             for row in table[2:]:
                 log = ""
-                row = [row[0]] # '구분'
                 
                 if len(table[0]) != 10:
                     log += "테이블 구조 확인\n"
@@ -57,16 +60,12 @@ def find_and_extarct_table(tables, file_name, excel_data):
                 if all(not cell for cell in row[1:]):
                     continue
                 
-                # 금액값 문자열->정수형으로 변환 후 검증
-                row = convert_row(row)
-                
-                # 금액값 오탈자 검수
+                # 금액을 정수형으로 변환
+                row = convert_row_to_int(row, log)
                 if row[3] != row[4] + row[5]:
                     log += "A+B 오타 확인\n"
                 if row[7] != row[6] - row[4]:
                     log += "C-A 오타 확인\n"
-                
-                row.append(row[9]) # '비고'
                 
                 # 새 행 추가
                 excel_data.append([file_name] + row + [log])
@@ -94,9 +93,9 @@ def pdf_table_extract(input_path, output_file):
                         tables = eddp.extract_tables_by_divided_double_page(pdf.pages[0])
                     else:
                         tables = pdf.pages[0].extract_tables()
-
+                        
                     if len(tables) > 0:
-                        match_found = find_and_extarct_table(tables, file_name, excel_data)
+                        match_found = find_and_extract_table(tables, file_name, excel_data)
                         if not match_found:
                             log = "첫 페이지 내 테이블을 찾지 못함"
                             excel_data.append([file_name] + ['']*10 + [log])
