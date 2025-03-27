@@ -23,9 +23,9 @@ def extract_lines_from_table_mask(table_mask):
     
     # 허프 변환으로 선 감지 - 파라미터 조정
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180,
-                            threshold=40,
-                            minLineLength=15,
-                            maxLineGap=15)
+                            threshold=30,
+                            minLineLength=10,
+                            maxLineGap=20)
 
     # 선 분리
     h_lines = []  # 수평선: (y, x0, x1)
@@ -291,8 +291,6 @@ def visualize_merged_cells(table_data, merged_cells, h_y_coords, v_x_coords, tab
     # 병합셀 시각화 이미지 생성
     merged_cells_viz = table_img.copy()
     
-
-    
     # 병합 그룹별로 시각화
     for idx, (min_row, min_col, max_row, max_col) in enumerate(merged_cells):
         color = (0, 255, 0)
@@ -462,6 +460,13 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
     orig_cv = cv2.imread(original_img_path)
     lined_cv = cv2.imread(lined_img_path)
 
+    # 시각화 활성화된 경우 전체 페이지 라인 이미지 저장
+    if visualize and debug_dir:
+        cv2.imwrite(os.path.join(debug_dir, "lined_page.png"), lined_cv)
+        
+        # 전체 페이지 병합셀 시각화 이미지 준비
+        merged_cells_page = lined_cv.copy()
+
     # 임시 파일 삭제
     try:
         os.remove(original_img_path)
@@ -481,12 +486,12 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
     # 연결된 구성요소 찾기
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(connected, connectivity=8)
 
-    # 배경(0번 라벨) 제외하고 크기순으로 정렬
+    # 배경(0번 라벨) 제외하고 위에서부터 순서대로 정렬
     areas = stats[1:, cv2.CC_STAT_AREA]
-    sorted_indices = np.argsort(areas)[::-1]  # 큰 영역부터 정렬
+    sorted_indices = np.argsort([stats[i+1, cv2.CC_STAT_TOP] for i in range(len(areas))])
 
     # 테이블로 간주할 최소 크기 (픽셀 수)
-    min_table_size = 10000
+    min_table_size = 4000 
     
     # 테이블 배열
     tables = []
@@ -503,7 +508,8 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
         component_label = idx + 1
         table_mask = np.zeros_like(binary_diff)
         table_mask[labels == component_label] = 255
-                # 테이블 외곽 사각형 정보 가져오기
+        
+        # 테이블 외곽 사각형 정보 가져오기
         x = stats[component_label, cv2.CC_STAT_LEFT]
         y = stats[component_label, cv2.CC_STAT_TOP]
         w = stats[component_label, cv2.CC_STAT_WIDTH]
@@ -522,14 +528,29 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
         if result:
             table_data, merged_cells, h_y_coords, v_x_coords, table_img, y_offset, x_offset = result
             
-            # 시각화 생성 (선택적)
+            # 시각화 생성 (선택적) - 개별 테이블의 merged_cells.png는 생성하지 않음
             if visualize and debug_dir and merged_cells:
-                # 병합셀 시각화 이미지 저장
-                output_path = os.path.join(debug_dir, f"table_{i+1}_merged_cells.png")
-                visualize_merged_cells(
-                    table_data, merged_cells, h_y_coords, v_x_coords,
-                    table_img, y_offset, x_offset, output_path
-                )
+                # 전체 페이지 병합셀 이미지에 표시
+                for idx, (min_row, min_col, max_row, max_col) in enumerate(merged_cells):
+                    color = (0, 255, 0)  # 녹색
+                    
+                    # 그룹의 경계 계산 - 페이지 좌표계로 변환
+                    y0 = int(h_y_coords[min_row])
+                    y1 = int(h_y_coords[max_row + 1])
+                    x0 = int(v_x_coords[min_col])
+                    x1 = int(v_x_coords[max_col + 1])
+                    
+                    # 병합 그룹 영역 반투명하게 표시
+                    overlay = merged_cells_page.copy()
+                    cv2.rectangle(overlay, (x0, y0), (x1, y1), color, -1)
+                    cv2.addWeighted(overlay, 0.3, merged_cells_page, 0.7, 0, merged_cells_page)
+                    
+                    # 병합 그룹 경계 강조
+                    cv2.rectangle(merged_cells_page, (x0, y0), (x1, y1), color, 2)
+                    
+                    # 그룹 번호 표시
+                    cv2.putText(merged_cells_page, f"T{i+1}-G{idx+1}", (x0 + 5, y0 + 20),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
             
             if fill_merged_cells and merged_cells:
                 # 병합셀 값을 모든 분할셀에 복사
@@ -541,16 +562,27 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
             
             # 테이블 데이터 추가
             tables.append(table_data)
+            
+            # 시각화용 전체 페이지에 테이블 영역 표시
+            if visualize and debug_dir:
+                # 테이블 경계 표시 (빨간색)
+                cv2.rectangle(merged_cells_page, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                cv2.putText(merged_cells_page, f"Table {i+1}", (x + 5, y - 10),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
 
         if len(tables) >= max_tables:  # 최대 max_tables개 테이블만 처리
             break
+    
+    # 전체 페이지 병합셀 시각화 이미지 저장
+    if visualize and debug_dir:
+        cv2.imwrite(os.path.join(debug_dir, "merged_cells_page.png"), merged_cells_page)
 
     return tables
 
 
 # 사용 예시
 if __name__ == "__main__":
-    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00001-3.pdf"
+    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00073.pdf"
     excel_data = []
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[0]
