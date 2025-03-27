@@ -24,7 +24,7 @@ def has_text_layer_mismatch(page):
     # 불일치 없음
     return False
 
-def extract_tables_by_divided_double_page(page, tableSettings=None):
+def extract_tables_by_divided_double_page(page):
     """좌표값 범위를 기준으로 분할 위치(왼쪽,오른쪽)를 식별하고 해당 테이블만 추출"""
     
     # 페이지 너비와 시각적 경계
@@ -52,7 +52,7 @@ def extract_tables_by_divided_double_page(page, tableSettings=None):
     
     # 테이블 추출
     filtering_tables = []
-    tables = page.extract_tables(tableSettings)
+    tables = page.extract_tables()
     table_bboxes = page.find_tables()
     
     for table_idx, table in enumerate(tables):
