@@ -4,14 +4,9 @@ import cv2
 import os
 import pandas as pd
 
-# pdfplumber의 lines 객체는 점선을 인식하는데
-# extract_tables()는 점선을 인식 못하는 문제를 개선한 테이블 추출 라이브러리
-
-# 기본 동작 과정
-# 1. pdfplumber로 page.lines를 추출하여 테이블 선 정보를 가져온다.
-# 2. 원본 PDF의 테이블 선 정보를 이미지화하여 마스크 이미지로 따온다.
-# 3. 마스크 이미지 내 수직선, 수평선 좌표를 역으로 다시 따오면, 원본 pdf의 테이블 좌표와 일치하는 테이블 좌표값이 나온다.
-# 4. 이 좌표는 pdfplumber의 table 추출 라이브러리에서 인식하지 못한 점선 좌표를 포함하고 있어, 개선된 추출이 가능하다.
+# pdfplumber에 비해 개선된 점
+# 1. 텍스트 레이어에 맞춰 추출하여, 간혹 화면에 보이지 않는 정보가 추출 -> 화면에 보이는 페이지 정보에 맞춰 추출
+# 2. 점선으로 된 테이블 양식에 대해 인식하지 못함 -> 점선 테이블 포함 인식
 
 
 def extract_lines_from_table_mask(table_mask):
@@ -317,7 +312,7 @@ def visualize_merged_cells(table_data, merged_cells, h_y_coords, v_x_coords, tab
     cv2.imwrite(output_path, merged_cells_viz)
 
 
-def extract_table_data(table_info, lined_cv, page, debug_dir=None):
+def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="file_name"):
     """개별 테이블 영역에서 데이터 추출 (특정 셀 단위 병합셀 처리)"""
     table_id = table_info['id']
     table_mask = table_info['mask']
@@ -374,6 +369,11 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None):
         y1 = h_y_coords_pdf[max_row + 1]
         x0 = v_x_coords_pdf[min_col]
         x1 = v_x_coords_pdf[max_col + 1]
+
+        # 모아찍기 해제로 x 좌표값이 페이지 범위를 벗어난 경우 조정
+        if x0 < page.bbox[0] and x1 < page.bbox[0]:
+            x0 += page.width
+            x1 += page.width
         
         # 패딩 추가하여 셀 내용 추출
         cell_bbox = (x0 + padding, y0 + padding, x1 - padding, y1 - padding)
@@ -390,7 +390,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None):
                 for col in range(min_col, max_col + 1):
                     processed_cells.add((row, col))
         except Exception as e:
-            print(f"병합셀 추출 오류 ({min_row}-{max_row}, {min_col}-{max_col}): {e}")
+            print(f"{file_name}병합셀 추출 오류 ({min_row}-{max_row}, {min_col}-{max_col}): {e}")
     
     # 일반 셀 데이터 추출
     for i in range(rows):
@@ -404,6 +404,11 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None):
             y1 = h_y_coords_pdf[i + 1]
             x0 = v_x_coords_pdf[j]
             x1 = v_x_coords_pdf[j + 1]
+
+            # 모아찍기 해제로 x 좌표값이 페이지 범위를 벗어난 경우 조정
+            if x0 < page.bbox[0] and x1 < page.bbox[0]:
+                x0 += page.width
+                x1 += page.width
             
             # 패딩 추가하여 셀 내용 추출
             cell_bbox = (x0 + padding, y0 + padding, x1 - padding, y1 - padding)
@@ -412,7 +417,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None):
                 cell_text = page.crop(cell_bbox).extract_text() or ''
                 table_data[i][j] = cell_text.strip()
             except Exception as e:
-                print(f"셀 추출 오류 ({i}, {j}): {e}")
+                print(f"{file_name}셀 추출 오류 ({i}, {j}): {e}")
     
     # 디버깅 시각화를 위한 정보도 함께 반환
     if debug_dir:
@@ -421,7 +426,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None):
         return table_data, merged_cells, None, None, None, None, None
 
 
-def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=False, output_dir=None):
+def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=False, output_dir=None, file_name="file_name"):
     """
     PDF 페이지에서 테이블을 추출하는 함수
     
@@ -523,7 +528,7 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
         }
         
         # 테이블 데이터 추출 (디버깅 정보 포함)
-        result = extract_table_data(table_info, lined_cv, page, debug_dir)
+        result = extract_table_data(table_info, lined_cv, page, debug_dir, file_name)
         
         if result:
             table_data, merged_cells, h_y_coords, v_x_coords, table_img, y_offset, x_offset = result
@@ -586,9 +591,10 @@ if __name__ == "__main__":
     excel_data = []
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[0]
+        file_name = os.path.splitext(pdf_path)[0]
         
         # 병합셀 값 복사 없이 테이블 추출
-        tables = extract_tables(page)
+        tables = extract_tables(page, file_name)
         
         # 병합셀 값을 모든 분할셀에 복사하여 테이블 추출
         tables_filled = extract_tables(page, 
