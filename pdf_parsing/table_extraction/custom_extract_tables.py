@@ -334,7 +334,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
     cols = len(v_x_coords) - 1
 
     if rows <= 0 or cols <= 0:
-        return None, None, None, None
+        return None, None, None, None, None, None, None
     
     # 그리드 라인 생성
     grid_h_lines, grid_v_lines = create_grid_lines(h_y_coords, v_x_coords)
@@ -587,14 +587,14 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
 
 # 사용 예시
 if __name__ == "__main__":
-    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00073.pdf"
+    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00154.pdf"
     excel_data = []
     with pdfplumber.open(pdf_path) as pdf:
-        page = pdf.pages[0]
+        page = pdf.pages[1]
         file_name = os.path.splitext(pdf_path)[0]
         
         # 병합셀 값 복사 없이 테이블 추출
-        tables = extract_tables(page, file_name)
+        tables = extract_tables(page, file_name=file_name)
         
         # 병합셀 값을 모든 분할셀에 복사하여 테이블 추출
         tables_filled = extract_tables(page, 
@@ -603,9 +603,10 @@ if __name__ == "__main__":
         
         for table in tables:
             #행 단위 데이터 추출
-            for row in table:
-                excel_data.append(row)
-            excel_data.append([]) # 테이블 간 공백 행 추가
+            if table is not None:
+                for row in table:
+                    excel_data.append(row)
+                excel_data.append([]) # 테이블 간 공백 행 추가
 
     #엑셀 저장
     df = pd.DataFrame(excel_data)
