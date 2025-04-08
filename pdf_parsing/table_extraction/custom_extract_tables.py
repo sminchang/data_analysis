@@ -334,7 +334,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
     cols = len(v_x_coords) - 1
 
     if rows <= 0 or cols <= 0:
-        return None, None, None, None, None, None, None
+        return None
     
     # 그리드 라인 생성
     grid_h_lines, grid_v_lines = create_grid_lines(h_y_coords, v_x_coords)
@@ -529,7 +529,6 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
         
         # 테이블 데이터 추출 (디버깅 정보 포함)
         result = extract_table_data(table_info, lined_cv, page, debug_dir, file_name)
-        
         if result:
             table_data, merged_cells, h_y_coords, v_x_coords, table_img, y_offset, x_offset = result
             
@@ -603,10 +602,9 @@ if __name__ == "__main__":
         
         for table in tables:
             #행 단위 데이터 추출
-            if table is not None:
-                for row in table:
-                    excel_data.append(row)
-                excel_data.append([]) # 테이블 간 공백 행 추가
+            for row in table:
+                excel_data.append(row)
+            excel_data.append([]) # 테이블 간 공백 행 추가
 
     #엑셀 저장
     df = pd.DataFrame(excel_data)
