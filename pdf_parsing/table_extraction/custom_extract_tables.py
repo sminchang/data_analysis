@@ -20,7 +20,7 @@ def extract_lines_from_table_mask(table_mask):
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180,
                             threshold=30,
                             minLineLength=10,
-                            maxLineGap=20)
+                            maxLineGap=25)
 
     # 선 분리
     h_lines = []  # 수평선: (y, x0, x1)
