@@ -1,5 +1,5 @@
 import os
-from PyPDF2 import PdfReader, PdfWriter
+from PyPDF2 import PdfReader, PdfWriter #pip install PyPDF2
 import copy
 
 def split_pdf(input_pdf, output_dir, ranges):
