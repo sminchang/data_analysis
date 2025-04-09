@@ -1,8 +1,8 @@
-import pdfplumber
-import numpy as np
-import cv2
+import pdfplumber #pip install pdfplumber
+import numpy as np #pip install numpy
+import cv2 #pip install opencv-python
 import os
-import pandas as pd
+import pandas as pd #pip install pandas, pip install openpyxl
 
 # pdfplumber에 비해 개선된 점
 # 1. 텍스트 레이어에 맞춰 추출하여, 간혹 화면에 보이지 않는 정보가 추출 -> 화면에 보이는 페이지 정보에 맞춰 추출
