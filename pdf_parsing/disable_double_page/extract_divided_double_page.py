@@ -1,5 +1,5 @@
-import pdfplumber
-import pandas as pd
+import pdfplumber #pip install pdfplumber
+import pandas as pd #pip install pandas, pip install openpyxl
 import os
 
 # 모아찍기된 페이지를 분할 저장했을 때 렌더링 텍스트와 내부 텍스트 레이어가 일치하지 않는 문제에 대한 예외처리 추출 코드 
