@@ -1,8 +1,8 @@
-import pdfplumber #pip install pdfplumber
-import numpy as np #pip install numpy
-import cv2 #pip install opencv-python
+import pdfplumber
+import numpy as np
+import cv2
 import os
-import pandas as pd #pip install pandas, pip install openpyxl
+import pandas as pd
 
 # pdfplumber에 비해 개선된 점
 # 1. 텍스트 레이어에 맞춰 추출하여, 간혹 화면에 보이지 않는 정보가 추출 -> 화면에 보이는 페이지 정보에 맞춰 추출
@@ -317,6 +317,9 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
     table_id = table_info['id']
     table_mask = table_info['mask']
     x, y, x_end, y_end = table_info['bbox']
+    if debug_dir:
+        os.makedirs(debug_dir, exist_ok=True)
+        cv2.imwrite(os.path.join(debug_dir, f"table{table_id}_mask.png"), table_mask)
 
     # 테이블 영역 내의 선 추출
     h_lines, v_lines = extract_lines_from_table_mask(table_mask)
@@ -426,7 +429,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
         return table_data, merged_cells, None, None, None, None, None
 
 
-def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=False, output_dir=None, file_name="file_name"):
+def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=None, file_name="file_name"):
     """
     PDF 페이지에서 테이블을 추출하는 함수
     
@@ -434,14 +437,13 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
         page: pdfplumber 페이지 객체
         resolution: 이미지 해상도 (기본값: 150)
         fill_merged_cells: 병합셀 값을 모든 분할셀에 복사할지 여부 (기본값: False)
-        visualize: 병합셀 시각화 이미지 생성 여부 (기본값: False)
-        output_dir: 시각화 이미지 저장 디렉토리 (기본값: None, visualize=True일 때만 사용)
+        output_dir: 시각화 이미지 저장 디렉토리 (기본값: None)
         
     Returns:
         추출된 테이블 목록 (2차원 리스트)
     """
     # 디버깅 디렉토리 설정
-    debug_dir = output_dir if visualize else None
+    debug_dir = output_dir
     if debug_dir:
         os.makedirs(debug_dir, exist_ok=True)
 
@@ -466,7 +468,7 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
     lined_cv = cv2.imread(lined_img_path)
 
     # 시각화 활성화된 경우 전체 페이지 라인 이미지 저장
-    if visualize and debug_dir:
+    if debug_dir:
         cv2.imwrite(os.path.join(debug_dir, "lined_page.png"), lined_cv)
         
         # 전체 페이지 병합셀 시각화 이미지 준비
@@ -485,7 +487,7 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
     _, binary_diff = cv2.threshold(diff_gray, 20, 255, cv2.THRESH_BINARY)
 
     # 모폴로지 연산으로 선 연결
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
     connected = cv2.morphologyEx(binary_diff, cv2.MORPH_CLOSE, kernel, iterations=2)
 
     # 연결된 구성요소 찾기
@@ -533,7 +535,7 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
             table_data, merged_cells, h_y_coords, v_x_coords, table_img, y_offset, x_offset = result
             
             # 시각화 생성 (선택적) - 개별 테이블의 merged_cells.png는 생성하지 않음
-            if visualize and debug_dir and merged_cells:
+            if debug_dir and merged_cells:
                 # 전체 페이지 병합셀 이미지에 표시
                 for idx, (min_row, min_col, max_row, max_col) in enumerate(merged_cells):
                     color = (0, 255, 0)  # 녹색
@@ -568,7 +570,7 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
             tables.append(table_data)
             
             # 시각화용 전체 페이지에 테이블 영역 표시
-            if visualize and debug_dir:
+            if debug_dir:
                 # 테이블 경계 표시 (빨간색)
                 cv2.rectangle(merged_cells_page, (x, y), (x + w, y + h), (0, 0, 255), 2)
                 cv2.putText(merged_cells_page, f"Table {i+1}", (x + 5, y - 10),
@@ -578,7 +580,7 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
             break
     
     # 전체 페이지 병합셀 시각화 이미지 저장
-    if visualize and debug_dir:
+    if debug_dir:
         cv2.imwrite(os.path.join(debug_dir, "merged_cells_page.png"), merged_cells_page)
 
     return tables
@@ -586,19 +588,14 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, visualize=Fals
 
 # 사용 예시
 if __name__ == "__main__":
-    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00154.pdf"
+    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00004.pdf"
     excel_data = []
     with pdfplumber.open(pdf_path) as pdf:
-        page = pdf.pages[1]
+        page = pdf.pages[2]
         file_name = os.path.splitext(pdf_path)[0]
         
         # 병합셀 값 복사 없이 테이블 추출
-        tables = extract_tables(page, file_name=file_name)
-        
-        # 병합셀 값을 모든 분할셀에 복사하여 테이블 추출
-        tables_filled = extract_tables(page, 
-                                       visualize=True, 
-                                       output_dir="table_output")
+        tables = extract_tables(page, output_dir="table_output")
         
         for table in tables:
             #행 단위 데이터 추출
