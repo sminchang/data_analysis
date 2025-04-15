@@ -8,6 +8,13 @@ import pandas as pd
 # 1. 텍스트 레이어에 맞춰 추출하여, 간혹 화면에 보이지 않는 정보가 추출 -> 화면에 보이는 페이지 정보에 맞춰 추출
 # 2. 점선으로 된 테이블 양식에 대해 인식하지 못함 -> 점선 테이블 포함 인식
 
+# 주요 동작 원리
+# 1. pdfplumber가 테이블 선으로 인식한 lines 객체로 테이블 실제 선을 그리고 이미지화
+# 2. 실제 선 이미지를 토대로 마스크만 따서 좌표값 추출
+# 3. 마스크 좌표값을 토대로 그리드 선을 그리고 이미지화 (그리드 선은 테이블 내 포함된 선들의 가장 긴 수평-수직 선을 긋는다.)
+# 4. 그리드 선 이미지와 실제 선 이미지 사이에 선 유무를 비교하여 그리드 선만 존재하는 셀 영역을 병합셀로 인식시킨다.
+# 5. 병합셀에 포함된 그리드 선이 수직선일 때는 좌우병합셀로, 수평선일 때는 상하병합셀로 인식시킨다. 
+
 
 def extract_lines_from_table_mask(table_mask):
     """테이블 마스크에서 수평선과 수직선을 추출하는 함수"""
@@ -52,7 +59,7 @@ def extract_lines_from_table_mask(table_mask):
     return h_lines, v_lines
 
 
-def merge_line_segments(lines, is_horizontal, gap_threshold=20):
+def merge_line_segments(lines, is_horizontal, gap_threshold=40):
     """가까운 선 세그먼트를 병합하는 함수"""
     if not lines:
         return []
@@ -360,7 +367,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
     table_data = [['' for _ in range(cols)] for _ in range(rows)]
     
     # 셀 패딩
-    padding = 2 * resolution_ratio
+    padding = 3 * resolution_ratio
     
     # 병합셀 처리를 위한 변수
     processed_cells = set()
@@ -470,9 +477,11 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=Non
     # 시각화 활성화된 경우 전체 페이지 라인 이미지 저장
     if debug_dir:
         cv2.imwrite(os.path.join(debug_dir, "lined_page.png"), lined_cv)
-        
+        # 실제 선-그리드 선 시각화 이미지 준비
+        grid_viz_page = lined_cv.copy()
         # 전체 페이지 병합셀 시각화 이미지 준비
         merged_cells_page = lined_cv.copy()
+        
 
     # 임시 파일 삭제
     try:
@@ -487,7 +496,7 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=Non
     _, binary_diff = cv2.threshold(diff_gray, 20, 255, cv2.THRESH_BINARY)
 
     # 모폴로지 연산으로 선 연결
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (6, 6))
     connected = cv2.morphologyEx(binary_diff, cv2.MORPH_CLOSE, kernel, iterations=2)
 
     # 연결된 구성요소 찾기
@@ -536,6 +545,19 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=Non
             
             # 시각화 생성 (선택적) - 개별 테이블의 merged_cells.png는 생성하지 않음
             if debug_dir and merged_cells:
+
+                # 실제 선-그리드 선 이미지에 표시
+                for y_coord in h_y_coords:
+                            cv2.line(grid_viz_page, 
+                                (int(v_x_coords[0]), int(y_coord)),
+                                (int(v_x_coords[-1]), int(y_coord)),
+                                (255, 0, 255), 1)  # 자주색 선
+                for x_coord in v_x_coords:
+                    cv2.line(grid_viz_page, 
+                        (int(x_coord), int(h_y_coords[0])),
+                        (int(x_coord), int(h_y_coords[-1])),
+                        (255, 0, 255), 1)  # 자주색 선
+
                 # 전체 페이지 병합셀 이미지에 표시
                 for idx, (min_row, min_col, max_row, max_col) in enumerate(merged_cells):
                     color = (0, 255, 0)  # 녹색
@@ -582,13 +604,14 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=Non
     # 전체 페이지 병합셀 시각화 이미지 저장
     if debug_dir:
         cv2.imwrite(os.path.join(debug_dir, "merged_cells_page.png"), merged_cells_page)
+        cv2.imwrite(os.path.join(debug_dir, "grid_lines_page.png"), grid_viz_page)
 
     return tables
 
 
 # 사용 예시
 if __name__ == "__main__":
-    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00004.pdf"
+    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00069.pdf"
     excel_data = []
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[2]
