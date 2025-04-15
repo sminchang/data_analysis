@@ -7,6 +7,7 @@ import pandas as pd
 # pdfplumber에 비해 개선된 점
 # 1. 텍스트 레이어에 맞춰 추출하여, 간혹 화면에 보이지 않는 정보가 추출 -> 화면에 보이는 페이지 정보에 맞춰 추출
 # 2. 점선으로 된 테이블 양식에 대해 인식하지 못함 -> 점선 테이블 포함 인식
+# 3. 모아찍기 해제된 페이지 내 테이블 좌표가 모아찍기 해제 전 좌표를 유지하는 문제 -> 좌표값 조정 기능을 추가하여 모아찍기 해제 지원
 
 # 주요 동작 원리
 # 1. pdfplumber가 테이블 선으로 인식한 lines 객체로 테이블 실제 선을 그리고 이미지화
@@ -14,7 +15,6 @@ import pandas as pd
 # 3. 마스크 좌표값을 토대로 그리드 선을 그리고 이미지화 (그리드 선은 테이블 내 포함된 선들의 가장 긴 수평-수직 선을 긋는다.)
 # 4. 그리드 선 이미지와 실제 선 이미지 사이에 선 유무를 비교하여 그리드 선만 존재하는 셀 영역을 병합셀로 인식시킨다.
 # 5. 병합셀에 포함된 그리드 선이 수직선일 때는 좌우병합셀로, 수평선일 때는 상하병합셀로 인식시킨다. 
-
 
 def extract_lines_from_table_mask(table_mask):
     """테이블 마스크에서 수평선과 수직선을 추출하는 함수"""
@@ -367,7 +367,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
     table_data = [['' for _ in range(cols)] for _ in range(rows)]
     
     # 셀 패딩
-    padding = 3 * resolution_ratio
+    padding = 2.5 * resolution_ratio
     
     # 병합셀 처리를 위한 변수
     processed_cells = set()
@@ -611,7 +611,7 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=Non
 
 # 사용 예시
 if __name__ == "__main__":
-    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00069.pdf"
+    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00153.pdf"
     excel_data = []
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[2]
