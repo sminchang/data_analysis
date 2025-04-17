@@ -25,9 +25,9 @@ def extract_lines_from_table_mask(table_mask):
     
     # 허프 변환으로 선 감지 - 파라미터 조정
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180,
-                            threshold=30,
+                            threshold=15,
                             minLineLength=10,
-                            maxLineGap=25)
+                            maxLineGap=10
 
     # 선 분리
     h_lines = []  # 수평선: (y, x0, x1)
