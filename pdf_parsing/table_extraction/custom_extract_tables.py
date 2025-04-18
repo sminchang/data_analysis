@@ -9,12 +9,6 @@ import pandas as pd
 # 2. 점선으로 된 테이블 양식에 대해 인식하지 못함 -> 점선 테이블 포함 인식
 # 3. 모아찍기 해제된 페이지 내 테이블 좌표가 모아찍기 해제 전 좌표를 유지하는 문제 -> 좌표값 조정 기능을 추가하여 모아찍기 해제 지원
 
-# 주요 동작 원리
-# 1. pdfplumber가 테이블 선으로 인식한 lines 객체로 테이블 실제 선을 그리고 이미지화
-# 2. 실제 선 이미지를 토대로 마스크만 따서 좌표값 추출
-# 3. 마스크 좌표값을 토대로 그리드 선을 그리고 이미지화 (그리드 선은 테이블 내 포함된 선들의 가장 긴 수평-수직 선을 긋는다.)
-# 4. 그리드 선 이미지와 실제 선 이미지 사이에 선 유무를 비교하여 그리드 선만 존재하는 셀 영역을 병합셀로 인식시킨다.
-# 5. 병합셀에 포함된 그리드 선이 수직선일 때는 좌우병합셀로, 수평선일 때는 상하병합셀로 인식시킨다. 
 
 def extract_lines_from_table_mask(table_mask):
     """테이블 마스크에서 수평선과 수직선을 추출하는 함수"""
@@ -27,7 +21,7 @@ def extract_lines_from_table_mask(table_mask):
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180,
                             threshold=15,
                             minLineLength=10,
-                            maxLineGap=10
+                            maxLineGap=10)
 
     # 선 분리
     h_lines = []  # 수평선: (y, x0, x1)
@@ -99,7 +93,7 @@ def merge_line_segments(lines, is_horizontal, gap_threshold=40):
     return merged_lines
 
 
-def merge_coords(coords, threshold=5):
+def merge_coords(coords, threshold=3):
     """좌표 병합 (threshold 픽셀 이내 좌표들을 평균값으로 병합)"""
     if not coords:
         return []
@@ -232,9 +226,11 @@ def detect_merged_cells(h_lines, v_lines, grid_h_lines, grid_v_lines, h_y_coords
                 
                 # 오른쪽 경계선이 없으면 오른쪽 셀과 병합된 것으로 판단
                 if not right_border_exists:
-                    # 이미 아래쪽과 병합된 셀은 우선순위가 있으므로 유지
+                    # 이미 아래쪽과 병합된 셀 확인
                     if merged_matrix[i, j] == 0:
                         merged_matrix[i, j] = 2  # 오른쪽과 병합
+                    else:
+                        merged_matrix[i, j] = 3 # 아래쪽 및 오른쪽과 병합
     
     # 병합 그룹 생성
     merged_groups = []
@@ -244,7 +240,7 @@ def detect_merged_cells(h_lines, v_lines, grid_h_lines, grid_v_lines, h_y_coords
         for j in range(cols):
             if visited[i, j]:
                 continue
-                
+                    
             # 병합되지 않은 셀은 건너뛰기
             if merged_matrix[i, j] == 0:
                 visited[i, j] = True
@@ -263,15 +259,15 @@ def detect_merged_cells(h_lines, v_lines, grid_h_lines, grid_v_lines, h_y_coords
             while queue:
                 r, c = queue.pop(0)
                 
-                # 아래쪽과 병합된 경우
-                if r < rows - 1 and merged_matrix[r, c] == 1 and not visited[r + 1, c]:
+                # 아래쪽과 병합된 경우 (값 1 또는 값 3)
+                if r < rows - 1 and (merged_matrix[r, c] == 1 or merged_matrix[r, c] == 3) and not visited[r + 1, c]:
                     visited[r + 1, c] = True
                     group.append((r + 1, c))
                     queue.append((r + 1, c))
                     max_row = max(max_row, r + 1)
                 
-                # 오른쪽과 병합된 경우
-                if c < cols - 1 and merged_matrix[r, c] == 2 and not visited[r, c + 1]:
+                # 오른쪽과 병합된 경우 (값 2 또는 값 3)
+                if c < cols - 1 and (merged_matrix[r, c] == 2 or merged_matrix[r, c] == 3) and not visited[r, c + 1]:
                     visited[r, c + 1] = True
                     group.append((r, c + 1))
                     queue.append((r, c + 1))
@@ -399,6 +395,10 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
             for row in range(min_row, max_row + 1):
                 for col in range(min_col, max_col + 1):
                     processed_cells.add((row, col))
+
+                    # 대표 셀(좌상단)이 아닌 병합셀 영역은 None으로 설정
+                    if (row != min_row or col != min_col):
+                        table_data[row][col] = None
         except Exception as e:
             print(f"{file_name}병합셀 추출 오류 ({min_row}-{max_row}, {min_col}-{max_col}): {e}")
     
@@ -436,14 +436,13 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
         return table_data, merged_cells, None, None, None, None, None
 
 
-def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=None, file_name="file_name"):
+def extract_tables(page, resolution=150, output_dir=None, file_name="file_name"):
     """
     PDF 페이지에서 테이블을 추출하는 함수
     
     Args:
         page: pdfplumber 페이지 객체
         resolution: 이미지 해상도 (기본값: 150)
-        fill_merged_cells: 병합셀 값을 모든 분할셀에 복사할지 여부 (기본값: False)
         output_dir: 시각화 이미지 저장 디렉토리 (기본값: None)
         
     Returns:
@@ -511,7 +510,6 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=Non
     
     # 테이블 배열
     tables = []
-    max_tables = 10  # 최대 처리할 테이블 수
 
     # 각 테이블 감지 및 처리
     for i, idx in enumerate(sorted_indices):
@@ -580,14 +578,6 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=Non
                     cv2.putText(merged_cells_page, f"T{i+1}-G{idx+1}", (x0 + 5, y0 + 20),
                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
             
-            if fill_merged_cells and merged_cells:
-                # 병합셀 값을 모든 분할셀에 복사
-                for min_row, min_col, max_row, max_col in merged_cells:
-                    value = table_data[min_row][min_col]
-                    for row in range(min_row, max_row + 1):
-                        for col in range(min_col, max_col + 1):
-                            table_data[row][col] = value
-            
             # 테이블 데이터 추가
             tables.append(table_data)
             
@@ -597,9 +587,6 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=Non
                 cv2.rectangle(merged_cells_page, (x, y), (x + w, y + h), (0, 0, 255), 2)
                 cv2.putText(merged_cells_page, f"Table {i+1}", (x + 5, y - 10),
                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
-
-        if len(tables) >= max_tables:  # 최대 max_tables개 테이블만 처리
-            break
     
     # 전체 페이지 병합셀 시각화 이미지 저장
     if debug_dir:
@@ -611,13 +598,13 @@ def extract_tables(page, resolution=150, fill_merged_cells=False, output_dir=Non
 
 # 사용 예시
 if __name__ == "__main__":
-    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_00153.pdf"
+    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_01067.pdf"
     excel_data = []
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[2]
         file_name = os.path.splitext(pdf_path)[0]
         
-        # 병합셀 값 복사 없이 테이블 추출
+        # 테이블 추출
         tables = extract_tables(page, output_dir="table_output")
         
         for table in tables:
