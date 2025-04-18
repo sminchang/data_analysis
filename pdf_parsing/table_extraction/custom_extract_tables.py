@@ -5,18 +5,10 @@ import os
 import pandas as pd
 
 # pdfplumber에 비해 개선된 점
- # 1. 텍스트 레이어에 맞춰 추출하여, 간혹 화면에 보이지 않는 정보가 추출 -> 화면에 보이는 페이지 정보에 맞춰 추출
- # 2. 점선으로 된 테이블 양식에 대해 인식하지 못함 -> 점선 테이블 포함 인식
- # 3. 모아찍기 해제된 페이지 내 테이블 좌표가 모아찍기 해제 전 좌표를 유지하는 문제 -> 좌표값 조정 기능을 추가하여 모아찍기 해제 지원
- 
- # 주요 동작 원리
- # 1. pdfplumber가 테이블 선으로 인식한 lines 객체 활용, 테이블 실제 선을 이미지화
- # 2. 실제 선을 기반으로 그리드 선을 이미지화
- # 3. 그리드 선 이미지와 실제 선 이미지 사이에 선 유무를 비교하여 그리드 선만 존재하는 셀 영역을 병합셀로 식별
- # 4. 병합셀에 포함된 그리드 선이 수직선일 때는 좌우병합셀로, 수평선일 때는 상하병합셀로 식별
- 
- # 개선 필요사항
- # 1. 이미지 기반 추출이기 때문에, 텍스트가 테이블 선에 겹쳐 있는 경우나, 매우 가까운 선 간격 등에 대한 인식률이 떨어진다.
+# 1. 텍스트 레이어에 맞춰 추출하여, 간혹 화면에 보이지 않는 정보가 추출 -> 화면에 보이는 페이지 정보에 맞춰 추출
+# 2. 점선으로 된 테이블 양식에 대해 인식하지 못함 -> 점선 테이블 포함 인식
+# 3. 모아찍기 해제된 페이지 내 테이블 좌표가 모아찍기 해제 전 좌표를 유지하는 문제 -> 좌표값 조정 기능을 추가하여 모아찍기 해제 지원
+
 
 def extract_lines_from_table_mask(table_mask):
     """테이블 마스크에서 수평선과 수직선을 추출하는 함수"""
@@ -43,16 +35,12 @@ def extract_lines_from_table_mask(table_mask):
             angle = np.abs(np.arctan2(y2 - y1, x2 - x1) * 180 / np.pi)
             
             # 수평선 (각도가 0 또는 180에 가까움)
-            if angle < 15 or angle > 165:
+            if angle < 5 or angle > 175:
                 h_lines.append((min(y1, y2), min(x1, x2), max(x1, x2)))
             
             # 수직선 (각도가 90에 가까움)
-            elif 75 < angle < 105:
+            elif 85 < angle < 95:
                 v_lines.append((min(x1, x2), min(y1, y2), max(y1, y2)))
-
-    # 짧은 선 세그먼트 연결
-    h_lines = merge_line_segments(h_lines, is_horizontal=True)
-    v_lines = merge_line_segments(v_lines, is_horizontal=False)
 
     # 수평선과 수직선 정렬
     h_lines.sort()  # y 좌표 기준 정렬
@@ -81,7 +69,7 @@ def merge_line_segments(lines, is_horizontal, gap_threshold=40):
             y_next, x0_next, x1_next = line
             
             # 같은 y 좌표에 있고 x 좌표가 가까운 경우 병합
-            if abs(y - y_next) <= 5 and x0_next - x1 <= gap_threshold:
+            if abs(y - y_next) <= 20 and x0_next - x1 <= gap_threshold:
                 current_line = (y, min(x0, x0_next), max(x1, x1_next))
             else:
                 merged_lines.append(current_line)
@@ -91,7 +79,7 @@ def merge_line_segments(lines, is_horizontal, gap_threshold=40):
             x_next, y0_next, y1_next = line
             
             # 같은 x 좌표에 있고 y 좌표가 가까운 경우 병합
-            if abs(x - x_next) <= 5 and y0_next - y1 <= gap_threshold:
+            if abs(x - x_next) <= 20 and y0_next - y1 <= gap_threshold:
                 current_line = (x, min(y0, y0_next), max(y1, y1_next))
             else:
                 merged_lines.append(current_line)
@@ -100,8 +88,7 @@ def merge_line_segments(lines, is_horizontal, gap_threshold=40):
     merged_lines.append(current_line)
     return merged_lines
 
-
-def merge_coords(coords, threshold=3):
+def merge_coords(coords, threshold=5):
     """좌표 병합 (threshold 픽셀 이내 좌표들을 평균값으로 병합)"""
     if not coords:
         return []
@@ -148,9 +135,19 @@ def create_grid_lines(h_y_coords, v_x_coords):
 
 
 def detect_merged_cells(h_lines, v_lines, grid_h_lines, grid_v_lines, h_y_coords, v_x_coords):
-    """실제 선과 그리드 선을 비교하여 병합셀 감지"""
+    """실제 선과 그리드 선을 비교하여 병합셀 감지
+    
+    Args:
+        h_lines: 감지된 실제 수평선 (y, x0, x1) 형식
+        v_lines: 감지된 실제 수직선 (x, y0, y1) 형식
+        grid_h_lines: 생성된 그리드 수평선 (y, x_min, x_max) 형식
+        grid_v_lines: 생성된 그리드 수직선 (x, y_min, y_max) 형식
+        h_y_coords: 병합된 수평선 y좌표 목록
+        v_x_coords: 병합된 수직선 x좌표 목록
+
+    """
     # 그리드 선과 실제 선 비교를 위한 임계값
-    threshold = 5
+    threshold = 3
     
     # 행과 열의 수 계산
     rows = len(h_y_coords) - 1
@@ -160,29 +157,26 @@ def detect_merged_cells(h_lines, v_lines, grid_h_lines, grid_v_lines, h_y_coords
     # 0: 병합되지 않음, 1: 아래쪽과 병합(행 병합), 2: 오른쪽과 병합(열 병합)
     merged_matrix = np.zeros((rows, cols), dtype=int)
     
-    # 각 그리드 라인에 대응하는 실제 라인 세그먼트를 찾기
     # 각 수평 그리드 라인에 대해 실제 수평선의 세그먼트들 저장
     h_line_segments = {}  # key: grid_y 값, value: (x0, x1) 세그먼트 목록
     for grid_y, grid_x0, grid_x1 in grid_h_lines:
         h_line_segments[grid_y] = []
-        
         # 이 그리드 라인과 일치하는 실제 선 찾기
         for y, x0, x1 in h_lines:
             if abs(y - grid_y) <= threshold:
                 # 실제 선 세그먼트 추가
                 h_line_segments[grid_y].append((x0, x1))
-    
+
     # 각 수직 그리드 라인에 대해 실제 수직선의 세그먼트들 저장
     v_line_segments = {}  # key: grid_x 값, value: (y0, y1) 세그먼트 목록
     for grid_x, grid_y0, grid_y1 in grid_v_lines:
         v_line_segments[grid_x] = []
-        
         # 이 그리드 라인과 일치하는 실제 선 찾기
         for x, y0, y1 in v_lines:
             if abs(x - grid_x) <= threshold:
                 # 실제 선 세그먼트 추가
                 v_line_segments[grid_x].append((y0, y1))
-    
+
     # 각 셀의 경계선 유무 확인
     for i in range(rows):
         for j in range(cols):
@@ -323,23 +317,30 @@ def visualize_merged_cells(table_data, merged_cells, h_y_coords, v_x_coords, tab
     cv2.imwrite(output_path, merged_cells_viz)
 
 
-def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="file_name"):
+def extract_table_data(table_info, lined_cv, page, h_lines=None, v_lines=None, debug_dir=None, file_name="file_name"):
     """개별 테이블 영역에서 데이터 추출 (특정 셀 단위 병합셀 처리)"""
     table_id = table_info['id']
     table_mask = table_info['mask']
     x, y, x_end, y_end = table_info['bbox']
+    
     if debug_dir:
         os.makedirs(debug_dir, exist_ok=True)
         cv2.imwrite(os.path.join(debug_dir, f"table{table_id}_mask.png"), table_mask)
 
-    # 테이블 영역 내의 선 추출
-    h_lines, v_lines = extract_lines_from_table_mask(table_mask)
+    # 선 추출이 제공되지 않은 경우에만 새로 추출
+    if h_lines is None or v_lines is None:
+        # 테이블 영역 내의 선 추출
+        h_lines, v_lines = extract_lines_from_table_mask(table_mask)
+        
+        # 테이블 외곽 경계 추가
+        h_lines, v_lines = add_table_boundary_to_lines(
+            h_lines, v_lines, 0, 0, table_mask.shape[1], table_mask.shape[0])
 
     # 추출된 선 정보로부터 좌표 추출
     h_y_coords = sorted(set([line[0] for line in h_lines]))
     v_x_coords = sorted(set([line[0] for line in v_lines]))
 
-    # 가까운 좌표 병합
+    # 가까운 좌표 병합(좌표 노이즈 제거)
     h_y_coords = merge_coords(h_y_coords)
     v_x_coords = merge_coords(v_x_coords)
 
@@ -352,7 +353,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
     
     # 그리드 라인 생성
     grid_h_lines, grid_v_lines = create_grid_lines(h_y_coords, v_x_coords)
-    
+
     # 디버깅 이미지 생성 (선택적)
     if debug_dir:
         os.makedirs(debug_dir, exist_ok=True)
@@ -371,7 +372,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
     table_data = [['' for _ in range(cols)] for _ in range(rows)]
     
     # 셀 패딩
-    padding = 2.5 * resolution_ratio
+    padding = 5 * resolution_ratio
     
     # 병합셀 처리를 위한 변수
     processed_cells = set()
@@ -408,7 +409,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
                     if (row != min_row or col != min_col):
                         table_data[row][col] = None
         except Exception as e:
-            print(f"{file_name}병합셀 추출 오류 ({min_row}-{max_row}, {min_col}-{max_col}): {e}")
+            print(f"{file_name} 병합셀 추출 오류 ({min_row}-{max_row}, {min_col}-{max_col}): {e}")
     
     # 일반 셀 데이터 추출
     for i in range(rows):
@@ -422,6 +423,7 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
             y1 = h_y_coords_pdf[i + 1]
             x0 = v_x_coords_pdf[j]
             x1 = v_x_coords_pdf[j + 1]
+
 
             # 모아찍기 해제로 x 좌표값이 페이지 범위를 벗어난 경우 조정
             if x0 < page.bbox[0] and x1 < page.bbox[0]:
@@ -443,6 +445,40 @@ def extract_table_data(table_info, lined_cv, page, debug_dir=None, file_name="fi
     else:
         return table_data, merged_cells, None, None, None, None, None
 
+def add_table_boundary_to_lines(h_lines, v_lines, x, y, w, h):
+    """테이블 외곽 경계를 실제 선 정보로 추가하는 함수"""
+    # 테이블 외곽 좌표
+    left = x
+    right = x + w
+    top = y
+    bottom = y + h
+    
+    # 수평선 경계 추가 (상단, 하단)
+    top_border = (top, left, right)  # (y, x0, x1) 형식
+    bottom_border = (bottom, left, right)
+    
+    # 수직선 경계 추가 (좌측, 우측)
+    left_border = (left, top, bottom)  # (x, y0, y1) 형식
+    right_border = (right, top, bottom)
+    
+    # 기존 선 목록에 외곽 경계 추가
+    updated_h_lines = list(h_lines) if h_lines is not None else []
+    updated_v_lines = list(v_lines) if v_lines is not None else []
+    
+    # 이미 유사한 선이 있는지 확인 후 추가
+    if not any(abs(line[0] - top) < 5 and abs(line[1] - left) < 5 and abs(line[2] - right) < 5 for line in updated_h_lines):
+        updated_h_lines.append(top_border)
+    
+    if not any(abs(line[0] - bottom) < 5 and abs(line[1] - left) < 5 and abs(line[2] - right) < 5 for line in updated_h_lines):
+        updated_h_lines.append(bottom_border)
+    
+    if not any(abs(line[0] - left) < 5 and abs(line[1] - top) < 5 and abs(line[2] - bottom) < 5 for line in updated_v_lines):
+        updated_v_lines.append(left_border)
+    
+    if not any(abs(line[0] - right) < 5 and abs(line[1] - top) < 5 and abs(line[2] - bottom) < 5 for line in updated_v_lines):
+        updated_v_lines.append(right_border)
+    
+    return updated_h_lines, updated_v_lines
 
 def extract_tables(page, resolution=150, output_dir=None, file_name="file_name"):
     """
@@ -503,7 +539,7 @@ def extract_tables(page, resolution=150, output_dir=None, file_name="file_name")
     _, binary_diff = cv2.threshold(diff_gray, 20, 255, cv2.THRESH_BINARY)
 
     # 모폴로지 연산으로 선 연결
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (6, 6))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
     connected = cv2.morphologyEx(binary_diff, cv2.MORPH_CLOSE, kernel, iterations=2)
 
     # 연결된 구성요소 찾기
@@ -514,7 +550,7 @@ def extract_tables(page, resolution=150, output_dir=None, file_name="file_name")
     sorted_indices = np.argsort([stats[i+1, cv2.CC_STAT_TOP] for i in range(len(areas))])
 
     # 테이블로 간주할 최소 크기 (픽셀 수)
-    min_table_size = 4000 
+    min_table_size = 1000 
     
     # 테이블 배열
     tables = []
@@ -543,15 +579,21 @@ def extract_tables(page, resolution=150, output_dir=None, file_name="file_name")
             'mask': table_mask,
             'bbox': (x, y, x + w, y + h)
         }
+
+        # 테이블 데이터 추출 전 선 추출
+        h_lines, v_lines = extract_lines_from_table_mask(table_mask)
+
+        # 테이블 외곽 경계를 선 정보에 추가
+        h_lines, v_lines = add_table_boundary_to_lines(h_lines, v_lines, x, y, w, h)
+
         
         # 테이블 데이터 추출 (디버깅 정보 포함)
-        result = extract_table_data(table_info, lined_cv, page, debug_dir, file_name)
+        result = extract_table_data(table_info, lined_cv, page, h_lines, v_lines, debug_dir, file_name)
         if result:
             table_data, merged_cells, h_y_coords, v_x_coords, table_img, y_offset, x_offset = result
             
-            # 시각화 생성 (선택적) - 개별 테이블의 merged_cells.png는 생성하지 않음
-            if debug_dir and merged_cells:
-
+            # 시각화 생성 (선택적)
+            if debug_dir:
                 # 실제 선-그리드 선 이미지에 표시
                 for y_coord in h_y_coords:
                             cv2.line(grid_viz_page, 
@@ -606,10 +648,10 @@ def extract_tables(page, resolution=150, output_dir=None, file_name="file_name")
 
 # 사용 예시
 if __name__ == "__main__":
-    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_01067.pdf"
+    pdf_path = r"C:\Users\yunis\바탕 화면\test\2025_02_01111.pdf"
     excel_data = []
     with pdfplumber.open(pdf_path) as pdf:
-        page = pdf.pages[2]
+        page = pdf.pages[5]
         file_name = os.path.splitext(pdf_path)[0]
         
         # 테이블 추출
