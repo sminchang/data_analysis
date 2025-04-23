@@ -675,6 +675,9 @@ class TableExtractor:
             if result:
                 table_data, merged_cells, h_y_coords, v_x_coords, y_offset, x_offset = result
                 
+                # 테이블 데이터 추가
+                tables.append(table_data)
+                
                 # 시각화 생성 (선택적)
                 if debug_dir:
                     # 전체 페이지 병합셀 이미지에 표시
@@ -701,9 +704,6 @@ class TableExtractor:
                             (x0 + 5, y0 + 20),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1
                         )
-                
-                    # 테이블 데이터 추가
-                    tables.append(table_data)
                     
                     # 시각화용 전체 페이지에 테이블 영역 표시
                     cv2.rectangle(merged_cells_page, (x, y), (x + w, y + h), (0, 0, 255), 2)
@@ -741,8 +741,8 @@ class TableExtractor:
 
 
 if __name__ == "__main__":
-    pdf_path = r"C:\Users\yunis\바탕 화면\세부사업설명서\세출\2025_02_02516.pdf" 
-    page_num = 1
+    pdf_path = r"C:\Users\yunis\바탕 화면\세부사업설명서\세출\2025_02_04254.pdf" 
+    page_num = 3
     debug_dir = "table_output"
     
     config = TableExtractorConfig(resolution=150)
@@ -756,7 +756,7 @@ if __name__ == "__main__":
         os.makedirs(debug_dir, exist_ok=True)
         
         # 테이블 추출
-        tables = extractor.extract_tables(page, debug_dir=debug_dir, file_name=file_name)
+        tables = extractor.extract_tables(page, file_name=file_name)
         
         # 엑셀 저장
         output_file = os.path.join(debug_dir, f"{file_name}_tables.xlsx")
