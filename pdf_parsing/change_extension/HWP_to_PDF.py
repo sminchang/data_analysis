@@ -30,30 +30,33 @@ def convert_hwp_to_pdf(hwp_path, pdf_path):
             src = os.path.join(hwp_path, file)
             dst = os.path.join(pdf_path, pre + ".pdf")
             
-            try:
-                # HWP 파일 열기
-                hwp.Open(src)
-                
-                # PrintToPDF 액션 생성 및 설정
-                action = hwp.CreateAction("PrintToPDF")
-                pSet = action.CreateSet()
-                action.GetDefault(pSet) # 기본 프린터 설정 가져오기
-                
-                # PDF 변환 옵션 설정
-                pSet.SetItem("PrintMethod", 0)  # 기본 인쇄 방식
-                pSet.SetItem("PrintPageOption", 1)  # 1페이지씩 인쇄
-                pSet.SetItem("FileName", dst)  # 저장할 PDF 파일 경로 지정
-                
-                # PDF로 변환 실행
-                action.Execute(pSet)
-                #다음 작업까지 지연
-                time.sleep(0.5)
-                
-            except Exception as e:
-                print(f'변환 실패: {src}. 오류: {str(e)}')
-            finally:
-                # 열린 문서 닫기
-                hwp.Clear(3)  # 3 = all documents
+            # HWP 파일 열기
+            hwp.Open(src)
+            
+            # PrintToPDF 액션 생성 및 설정
+            action = hwp.CreateAction("PrintToPDF")
+            pSet = action.CreateSet()
+            action.GetDefault(pSet) # 기본 프린터 설정 가져오기
+            
+            # PDF 변환 옵션 설정
+            pSet.SetItem("PrintMethod", 0)  # 기본 인쇄 방식
+            pSet.SetItem("PrintPageOption", 1)  # 1페이지씩 인쇄
+            pSet.SetItem("FileName", dst)  # 저장할 PDF 파일 경로 지정
+            
+            # PDF로 변환 실행
+            action.Execute(pSet)
+
+            #스핀락(비동기 동작 대기)
+            while True:
+                if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
+                    try:
+                        # 파일 열기 시도로 완료 확인
+                        with open(pdf_path, 'rb') as f:
+                            f.read(1)  # 1바이트만 읽어보기
+                        break  # 성공하면 루프 탈출
+                    except:
+                        pass
+
                 
     except Exception as e:
         print(f'스크립트 실행 중 오류 발생: {str(e)}')
