@@ -3,6 +3,8 @@ pdfplumber의 extract_table()을 개선한 테이블 추출 기능 제공
 - 텍스트 레이어가 아닌 화면에 보이는 페이지 내용을 기반으로 테이블 추출
 - 점선 테이블 인식
 - 외곽선이 없는 테이블 인식
+- extract_table()에 비해 더 높은 정확도를 보임
+- extact_table()에 비해 효율이 떨어짐(자원할당 및 시간소요 등)
 """
 
 import os
@@ -11,6 +13,30 @@ import numpy as np
 import pandas as pd
 import pdfplumber
 
+def imread_unicode(path):
+    try:
+        with open(path, "rb") as f:
+            data = f.read()
+        arr = np.frombuffer(data, np.uint8)
+        return cv2.imdecode(arr, cv2.IMREAD_COLOR)
+    except Exception as e:
+        print(f"[에러] 이미지 로드 실패: {path} - {e}")
+        return None
+
+def imwrite_unicode(path, image):
+    try:
+        ext = os.path.splitext(path)[1]
+        result, encoded_img = cv2.imencode(ext, image)
+        if result:
+            with open(path, mode='wb') as f:
+                encoded_img.tofile(f)
+            return True
+        else:
+            print(f"[에러] 이미지 인코딩 실패: {path}")
+            return False
+    except Exception as e:
+        print(f"[에러] 이미지 저장 실패: {path} - {e}")
+        return False
 
 class TableExtractorConfig:
     """테이블 추출 설정 클래스"""
@@ -23,7 +49,7 @@ class TableExtractorConfig:
     MIN_LINE_LENGTH = 5  # 최소 선 길이
     MAX_LINE_GAP = 6  # 최대 선 간격
     ANGLE_HORIZONTAL_THRESHOLD = 5  # 수평선 각도 임계값
-    ANGLE_VERTICAL_THRESHOLD = 85  # 수직선 각도 임계값
+    ANGLE_VERTICAL_THRESHOLD = 5  # 수직선 각도 임계값
     CELL_OVERLAP_THRESHOLD = 0.1  # 셀 중첩 임계값 (10%)
     
     def __init__(self, **kwargs):
@@ -152,6 +178,8 @@ class LineDetector:
                 # 수직선 (각도가 90에 가까움)
                 elif (90 - self.config.angle_vertical_threshold) < angle < (90 + self.config.angle_vertical_threshold):
                     v_lines.append((min(x1, x2), min(y1, y2), max(y1, y2)))
+                else:
+                    pass
         
         # 좌표에 따라 정렬
         h_lines.sort()  # y 좌표 기준 정렬
@@ -581,27 +609,25 @@ class TableExtractor:
             추출된 테이블 목록 (2차원 리스트)
         """
         # 디버깅 디렉토리 설정
-        if debug_dir:
-            os.makedirs(debug_dir, exist_ok=True)
+        tmp_dir = r"C:/Temp/pdf_temp_images"
+        os.makedirs(tmp_dir, exist_ok=True)
 
-        # 원본 페이지 이미지 생성
+        original_img_path = os.path.join(tmp_dir, "_temp_original_page.png")
+        lined_img_path = os.path.join(tmp_dir, "_temp_lined_page.png")
+
         original_img = page.to_image(resolution=self.config.resolution)
-        original_img_path = os.path.join(os.getcwd(), "_temp_original_page.png")
         original_img.save(original_img_path)
 
-        # 선을 그린 이미지 생성
         lined_img = page.to_image(resolution=self.config.resolution)
-        
         for line in page.lines:
             points = [(line["x0"], line["top"]), (line["x1"], line["bottom"])]
             lined_img.draw_line(points, stroke="red", stroke_width=self.config.line_width)
-            
-        lined_img_path = os.path.join(os.getcwd(), "_temp_lined_page.png")
         lined_img.save(lined_img_path)
 
-        # 두 이미지를 OpenCV로 로드
-        orig_cv = cv2.imread(original_img_path)
-        lined_cv = cv2.imread(lined_img_path)
+        # ✅ 한글 경로 대응 이미지 로드
+        orig_cv = imread_unicode(original_img_path)
+        lined_cv = imread_unicode(lined_img_path)
+
 
         # 시각화 활성화된 경우 전체 페이지 라인 이미지 저장
         if debug_dir:
@@ -741,8 +767,8 @@ class TableExtractor:
 
 
 if __name__ == "__main__":
-    pdf_path = r"C:\Users\yunis\바탕 화면\세부사업설명서\세출\2025_02_04254.pdf" 
-    page_num = 3
+    pdf_path = r"c:\Users\user1\Desktop\씨지인사이드\결산자료\2022년\파일 분할\연습용 폴더\2022_03_01337.pdf"
+    page_num = 0
     debug_dir = "table_output"
     
     config = TableExtractorConfig(resolution=150)
@@ -756,7 +782,7 @@ if __name__ == "__main__":
         os.makedirs(debug_dir, exist_ok=True)
         
         # 테이블 추출
-        tables = extractor.extract_tables(page, file_name=file_name)
+        tables = extractor.extract_tables(page, debug_dir=debug_dir, file_name=file_name)
         
         # 엑셀 저장
         output_file = os.path.join(debug_dir, f"{file_name}_tables.xlsx")
