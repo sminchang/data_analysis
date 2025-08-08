@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import pdfplumber
+import threading
 
 
 class TableExtractorConfig:
@@ -586,9 +587,11 @@ class TableExtractor:
         if debug_dir:
             os.makedirs(debug_dir, exist_ok=True)
 
+        unique_id = f"{os.getpid()}_{threading.get_ident()}"
+
         # 원본 페이지 이미지 생성
         original_img = page.to_image(resolution=self.config.resolution)
-        original_img_path = os.path.join(os.getcwd(), "_temp_original_page.png")
+        original_img_path = os.path.join(os.getcwd(), f"_temp_original_page_{unique_id}.png")
         original_img.save(original_img_path)
 
         # 선을 그린 이미지 생성
@@ -598,7 +601,7 @@ class TableExtractor:
             points = [(line["x0"], line["top"]), (line["x1"], line["bottom"])]
             lined_img.draw_line(points, stroke="red", stroke_width=self.config.line_width)
             
-        lined_img_path = os.path.join(os.getcwd(), "_temp_lined_page.png")
+        lined_img_path = os.path.join(os.getcwd(), f"_temp_lined_page_{unique_id}.png")
         lined_img.save(lined_img_path)
 
         # 두 이미지를 OpenCV로 로드
