@@ -125,3 +125,4 @@ pdf_to_text(input_path, output_file_path)
 # output_file_path = 'output_pypdf2.txt'
 
 # pdf_to_text(input_path, output_file_path)
+
