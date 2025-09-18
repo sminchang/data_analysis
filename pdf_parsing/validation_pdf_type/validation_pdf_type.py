@@ -8,6 +8,18 @@ class PageType(Enum):
     IMAGED = "imaged"
     EMPTY = "empty"
 
+def has_meaningful_chars(page):
+    """
+    의미있는 문자가 있는지 확인 (공백, 줄바꿈 제외)
+    """
+    chars = page.chars
+    if not chars:
+        return False
+    
+    # 공백과 줄바꿈이 아닌 문자만 필터링
+    meaningful_chars = [c for c in chars if c.get('text', '').strip()]
+    return len(meaningful_chars) > 0
+
 def has_text_layer_mismatch(page):
     """
     모아찍기 해제된 페이지인지 확인
@@ -42,7 +54,7 @@ def get_page_type(page):
     text = page.extract_text()
     has_text = bool(text and text.strip())
     has_image = bool(page.images)
-    has_chars = bool(page.chars)
+    has_chars = has_meaningful_chars(page)
     has_shapes = bool(page.objects.get("curve") or page.objects.get("rect"))
     text_layer_mismatch = has_text_layer_mismatch(page)
     
@@ -72,12 +84,8 @@ def analyze_page_detailed(page):
         dict: 상세 분석 정보
     """
     text = page.extract_text()
-    has_text = bool(text and text.strip())
-    has_image = bool(page.images)
-    has_chars = bool(page.chars)
     has_shapes = bool(page.objects.get("curve") or page.objects.get("rect"))
     text_layer_mismatch = has_text_layer_mismatch(page)
-    
     page_type = get_page_type(page)
     
     # 타입별 설명 매핑
@@ -90,9 +98,9 @@ def analyze_page_detailed(page):
     
     return {
         'type': page_type,
-        'has_text': has_text,
-        'has_image': has_image,
-        'has_chars': has_chars,
+        'text': text,
+        'has_image': page.images,
+        'has_chars': page.chars,
         'has_shapes': has_shapes,
         'has_text_layer_mismatch': text_layer_mismatch,
         'description': descriptions.get(page_type, '알 수 없는 타입'),
@@ -103,9 +111,7 @@ def analyze_page_detailed(page):
 
 # 사용 예제
 if __name__ == "__main__":
-    # from utils.validation_pdf_type import get_page_type, PageType
-
-    pdf_path = r"C:\Users\yunis\Desktop\test\2022_04_01003 (스캔된문서).pdf"
+    pdf_path = r"C:\Users\yunis\Desktop\test\1234.pdf"
 
     with pdfplumber.open(pdf_path) as pdf:
 
