@@ -24,3 +24,11 @@
    1-3. pip install 라이브러리명 입력 (venv를 통해 해당 프로젝트 폴더에서만 라이브러리가 설치되도록 설정)
 2. VS code 우측 하단에 interpreter가 '.venv':venv로 안되어 있다면 클릭해서 Create Virtual Environment으로 venv로 설정
 3. 가상 환경 비활성화: deactivate(실행 중인 (.venv)cmd 창에 명령어 입력)
+
+
+## 인터렉티브 환경 추가
+
+### IDE 설정
+1. VSCode의 `Extensions`에서 `Jupyter` 확장 프로그램을 설치
+2. `command palette` (`Ctrl + Shift + P`)에서 `create: New Jupyter Notebook` 입력
+3. .ipynb 파일 생성
